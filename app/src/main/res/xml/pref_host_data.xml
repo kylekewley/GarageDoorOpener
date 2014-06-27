@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="host_name"
+        android:title="@string/pref_title_host_name"
+        android:selectAllOnFocus="true"
+        android:defaultValue="@string/pref_default_host_name"
+        android:inputType="textWebEmailAddress"
+        android:capitalize="none"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+    <EditTextPreference
+        android:key="port_number"
+        android:title="@string/pref_title_host_port"
+        android:selectAllOnFocus="true"
+        android:defaultValue="@string/pref_default_port_number"
+        android:inputType="number"
+        android:capitalize="none"
+        android:singleLine="true"
+        android:maxLines="1" />
+
+
+
+</PreferenceScreen>

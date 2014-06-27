@@ -2,11 +2,14 @@ package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 
 import kylekewley.garagedooropener.adapter.TabsPagerAdapter;
@@ -15,6 +18,9 @@ import kylekewley.garagedooropener.adapter.TabsPagerAdapter;
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener {
     ///The tag to use for log messages from this class
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
+
+    private static final int SETTINGS_RESULT = 1;
+
 
     private ViewPager viewPager;
     private TabsPagerAdapter mAdapter;
@@ -29,6 +35,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         // Initilization
         viewPager = (ViewPager) findViewById(R.id.pager);
@@ -64,6 +71,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
             }
         });
+
     }
 
 
@@ -71,6 +79,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
         return true;
     }
 
@@ -81,6 +90,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            //Open the user preferences menu
+            Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivityForResult(i, SETTINGS_RESULT);
             return true;
         }
         return super.onOptionsItemSelected(item);
