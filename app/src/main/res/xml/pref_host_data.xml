@@ -3,7 +3,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
-        android:key="host_name"
+        android:key="@string/pref_host_id"
         android:title="@string/pref_title_host_name"
         android:selectAllOnFocus="true"
         android:defaultValue="@string/pref_default_host_name"
@@ -13,7 +13,7 @@
         android:maxLines="1" />
 
     <EditTextPreference
-        android:key="port_number"
+        android:key="@string/pref_port_id"
         android:title="@string/pref_title_host_port"
         android:selectAllOnFocus="true"
         android:defaultValue="@string/pref_default_port_number"

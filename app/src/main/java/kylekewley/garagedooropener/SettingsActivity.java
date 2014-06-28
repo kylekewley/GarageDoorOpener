@@ -103,8 +103,8 @@ public class SettingsActivity extends PreferenceActivity {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_host_data);
 
-            bindPreferenceSummaryToValue(findPreference("host_name"));
-            bindPreferenceSummaryToValue(findPreference("port_number"));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_host_id)));
+            bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_port_id)));
         }
 
 
