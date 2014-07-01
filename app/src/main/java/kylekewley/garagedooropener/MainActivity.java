@@ -1,38 +1,47 @@
 package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
-import android.app.FragmentTransaction;
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
+import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiClientCallbacks;
 
-import kylekewley.garagedooropener.adapter.TabsPagerAdapter;
+import kylekewley.garagedooropener.fragments.GarageOpenerFragment;
+import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
 
 
-public class MainActivity extends FragmentActivity implements ActionBar.TabListener, PiClientCallbacks {
+public class MainActivity extends Activity implements
+        NavigationDrawerFragment.NavigationDrawerCallbacks,
+        PiClientCallbacks {
     ///The tag to use for log messages from this class
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
 
     private static final int SETTINGS_RESULT = 1;
 
 
-    private ViewPager viewPager;
-    private TabsPagerAdapter mAdapter;
-    private ActionBar actionBar;
+    /**
+     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
+     */
+    private NavigationDrawerFragment mNavigationDrawerFragment;
 
-    // Tab titles
-    private String[] tabTitles = { "Opener", "History" };
+    /**
+     * Used to store the last screen title.
+     */
+    private CharSequence mTitle;
+
+
 
     //Create the PiClient
     PiClient piClient = new PiClient();
@@ -43,51 +52,29 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getFragmentManager().findFragmentById(R.id.navigation_drawer);
+        mTitle = getTitle();
 
-        // Initialization
-        viewPager = (ViewPager) findViewById(R.id.pager);
-        actionBar = getActionBar();
-        mAdapter = new TabsPagerAdapter(getSupportFragmentManager());
-
-        viewPager.setAdapter(mAdapter);
-        actionBar.setHomeButtonEnabled(false);
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-        // Adding Tabs
-        for (String tab_name : tabTitles) {
-        actionBar.addTab(actionBar.newTab().setText(tab_name).
-                setTabListener(this));
-        }
-
-        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                // on changing the page
-                // make respected tab selected
-                actionBar.setSelectedNavigationItem(position);
-
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-
+        // Set up the drawer.
+        mNavigationDrawerFragment.setUp(
+                R.id.navigation_drawer,
+                (DrawerLayout) findViewById(R.id.drawer_layout));
     }
+
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-
-        return true;
+        if (!mNavigationDrawerFragment.isDrawerOpen()) {
+            // Only show items in the action bar relevant to this screen
+            // if the drawer is not showing. Otherwise, let the drawer
+            // decide what to show in the action bar.
+            getMenuInflater().inflate(R.menu.main, menu);
+            restoreActionBar();
+            return true;
+        }
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -100,29 +87,33 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             //Open the user preferences menu
             Intent i = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivityForResult(i, SETTINGS_RESULT);
+
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    /*
-    Tab Listener
-     */
 
-    @Override
-    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-        viewPager.setCurrentItem(tab.getPosition());
+    public void onSectionAttached(int number) {
+        switch (number) {
+            case 1:
+                mTitle = getString(R.string.title_section1);
+                break;
+            case 2:
+                mTitle = getString(R.string.title_section2);
+                break;
+            case 3:
+                mTitle = getString(R.string.title_section3);
+                break;
+        }
+    }
+    public void restoreActionBar() {
+        ActionBar actionBar = getActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(mTitle);
     }
 
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-
-    }
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-
-    }
 
     /*
     Private Methods
@@ -148,6 +139,26 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
         piClient.connectToPiServer(getHostName(), getPortNumber());
     }
+
+    /*
+    NavigationDrawerCallbacks
+     */
+
+    /**
+     * Called when an item in the navigation drawer is selected.
+     *
+     * @param position
+     */
+    @Override
+    public void onNavigationDrawerItemSelected(int position) {
+        // update the main content by replacing fragments
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, GarageOpenerFragment.newInstance())
+                .commit();
+    }
+
+
     /*
     PiClient Callbacks class
      */
