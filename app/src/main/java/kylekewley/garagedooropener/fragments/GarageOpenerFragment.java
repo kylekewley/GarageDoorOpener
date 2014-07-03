@@ -1,11 +1,13 @@
 package kylekewley.garagedooropener.fragments;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 
 /**
@@ -15,6 +17,11 @@ import kylekewley.garagedooropener.R;
  *
  */
 public class GarageOpenerFragment extends Fragment {
+    /**
+     * The fragment argument representing the garage ID number for this
+     * fragment.
+     */
+    private static final String ARG_GARAGE_ID = "garage_id";
 
     /**
      * Use this factory method to create a new instance of
@@ -22,8 +29,11 @@ public class GarageOpenerFragment extends Fragment {
      *
      * @return A new instance of fragment GarageOpenerFragment.
      */
-    public static GarageOpenerFragment newInstance() {
+    public static GarageOpenerFragment newInstance(int garageID) {
         GarageOpenerFragment fragment = new GarageOpenerFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_GARAGE_ID, garageID);
+        fragment.setArguments(args);
         return fragment;
     }
     public GarageOpenerFragment() {
@@ -33,8 +43,6 @@ public class GarageOpenerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
     }
 
     @Override

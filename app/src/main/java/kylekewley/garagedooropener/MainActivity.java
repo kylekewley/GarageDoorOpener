@@ -8,9 +8,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -18,7 +17,13 @@ import android.view.MenuItem;
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiClientCallbacks;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import kylekewley.garagedooropener.fragments.GarageHistoryFragment;
 import kylekewley.garagedooropener.fragments.GarageOpenerFragment;
+import kylekewley.garagedooropener.fragments.GarageOpenerOverviewFragment;
+import kylekewley.garagedooropener.fragments.GaragePager;
 import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
 
 
@@ -30,6 +35,7 @@ public class MainActivity extends Activity implements
 
     private static final int SETTINGS_RESULT = 1;
 
+    private static final int NUM_GARAGE_DOORS = 2;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -40,7 +46,6 @@ public class MainActivity extends Activity implements
      * Used to store the last screen title.
      */
     private CharSequence mTitle;
-
 
 
     //Create the PiClient
@@ -94,19 +99,10 @@ public class MainActivity extends Activity implements
     }
 
 
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_section2);
-                break;
-            case 3:
-                mTitle = getString(R.string.title_section3);
-                break;
-        }
+    public void onSectionAttached(String title) {
+        mTitle = title;
     }
+
     public void restoreActionBar() {
         ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
@@ -151,15 +147,46 @@ public class MainActivity extends Activity implements
      */
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, GarageOpenerFragment.newInstance())
-                .commit();
+
+        Fragment fragment = null;
+
+        if (position < NUM_GARAGE_DOORS) {
+            fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, position+1);
+
+        }else if (position == NUM_GARAGE_DOORS) {
+            fragment = GarageOpenerOverviewFragment.newInstance();
+
+        }else {
+            fragment = GarageHistoryFragment.newInstance();
+        }
+
+        if (fragment != null) {
+            // update the main content by replacing fragments
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .commit();
+
+        }
     }
 
+    @Override
+    public List<String> arrayAdapterTitles() {
+        ArrayList<String> titles = new ArrayList<String>();
 
-    /*
+
+        for (int i = 0; i < NUM_GARAGE_DOORS; i++) {
+            titles.add(getString(R.string.title_garage_opener) + " " + Integer.toString(i+1));
+        }
+
+        titles.add(getString(R.string.title_garage_overview));
+
+        titles.add(getString(R.string.title_garage_history));
+
+        return titles;
+    }
+
+/*
     PiClient Callbacks class
      */
 
