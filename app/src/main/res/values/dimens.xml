@@ -7,4 +7,7 @@
      https://developer.android.com/design/patterns/navigation-drawer.html -->
     <dimen name="navigation_drawer_width">240dp</dimen>
 
+    <dimen name="viewpager_margin">-192dp</dimen>
+    <dimen name="viewpager_margin_fix">98dp</dimen>
+
 </resources>

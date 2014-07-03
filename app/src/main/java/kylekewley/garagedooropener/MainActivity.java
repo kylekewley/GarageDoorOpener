@@ -35,7 +35,7 @@ public class MainActivity extends FragmentActivity implements
 
     private static final int SETTINGS_RESULT = 1;
 
-    private static final int NUM_GARAGE_DOORS = 2;
+    private static final int NUM_GARAGE_DOORS = 3;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.

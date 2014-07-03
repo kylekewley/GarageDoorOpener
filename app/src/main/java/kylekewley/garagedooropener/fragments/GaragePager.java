@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import android.support.v4.view.PagerAdapter;
@@ -88,9 +89,12 @@ public class GaragePager extends Fragment implements
             mPager = (ViewPager)v.findViewById(R.id.view_pager);
 
             mPager.setOnPageChangeListener(this);
-
+            mPager.setClipChildren(false);
+            mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
+            mPager.setOffscreenPageLimit(6);
             mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
             mPager.setAdapter(mPagerAdapter);
+            mPager.refreshDrawableState();
         }
 
         return v;
@@ -129,11 +133,14 @@ public class GaragePager extends Fragment implements
 
         }
 
+
         @Override
         public Fragment getItem(int position) {
             Log.d("Tag", "NEW fragment");
             return GarageOpenerFragment.newInstance(position+1);
         }
+
+
 
         @Override
         public int getCount() {
