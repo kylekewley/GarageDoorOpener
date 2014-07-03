@@ -7,7 +7,7 @@
     <string name="pref_header_host_data">Network</string>
     <string name="pref_description_host_data">Hostname, Port Number</string>
 
-    <string name="pref_title_host_name">Hostname or IP Address</string>
+    <string name="pref_title_host_name">Hostname</string>
     <string name="pref_title_host_port">Port Number</string>
 
     <string name="pref_port_id">port_number</string>

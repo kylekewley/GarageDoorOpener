@@ -98,7 +98,12 @@ public class MainActivity extends Activity implements
         return super.onOptionsItemSelected(item);
     }
 
-
+    /**
+     * Fragments must call this method from their onAttached() method.
+     * This sets the title of the action bar.
+     *
+     * @param title The title to display for the fragment.
+     */
     public void onSectionAttached(String title) {
         mTitle = title;
     }
@@ -115,13 +120,19 @@ public class MainActivity extends Activity implements
     Private Methods
      */
 
-
+    /**
+     * @return  The hostname stored in the user preferences.
+     */
     private String getHostName() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         return preferences.getString(getString(R.string.pref_host_id), getString(R.string.pref_default_host_name));
     }
 
+
+    /**
+     * @return  The port number stored in the user preferences.
+     */
     private int getPortNumber() {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -140,24 +151,24 @@ public class MainActivity extends Activity implements
     NavigationDrawerCallbacks
      */
 
+
     /**
      * Called when an item in the navigation drawer is selected.
      *
-     * @param position
+     * @param position  The selected position.
      */
     @Override
     public void onNavigationDrawerItemSelected(int position) {
 
         Fragment fragment = null;
 
-        if (position < NUM_GARAGE_DOORS) {
-            fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, position+1);
-
-        }else if (position == NUM_GARAGE_DOORS) {
-            fragment = GarageOpenerOverviewFragment.newInstance();
-
-        }else {
-            fragment = GarageHistoryFragment.newInstance();
+        switch (position) {
+            case 0:
+                fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, position+1);
+                break;
+            case 1:
+                fragment = GarageHistoryFragment.newInstance();
+                break;
         }
 
         if (fragment != null) {
@@ -170,14 +181,15 @@ public class MainActivity extends Activity implements
         }
     }
 
+    /**
+     * Used by the NavigationDrawerFragment to get the titles for each item
+     * in the navigation drawer.
+     *
+     * @return  A list of titles that should be displayed in the navigation drawer
+     */
     @Override
     public List<String> arrayAdapterTitles() {
         ArrayList<String> titles = new ArrayList<String>();
-
-
-        for (int i = 0; i < NUM_GARAGE_DOORS; i++) {
-            titles.add(getString(R.string.title_garage_opener) + " " + Integer.toString(i+1));
-        }
 
         titles.add(getString(R.string.title_garage_overview));
 
@@ -186,7 +198,8 @@ public class MainActivity extends Activity implements
         return titles;
     }
 
-/*
+
+    /*
     PiClient Callbacks class
      */
 
