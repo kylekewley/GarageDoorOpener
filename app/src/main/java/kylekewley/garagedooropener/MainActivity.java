@@ -1,13 +1,13 @@
 package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
-import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -27,7 +27,7 @@ import kylekewley.garagedooropener.fragments.GaragePager;
 import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
 
 
-public class MainActivity extends Activity implements
+public class MainActivity extends FragmentActivity implements
         NavigationDrawerFragment.NavigationDrawerCallbacks,
         PiClientCallbacks {
     ///The tag to use for log messages from this class
@@ -106,6 +106,7 @@ public class MainActivity extends Activity implements
      */
     public void onSectionAttached(String title) {
         mTitle = title;
+        getActionBar().setTitle(mTitle);
     }
 
     public void restoreActionBar() {
@@ -173,7 +174,8 @@ public class MainActivity extends Activity implements
 
         if (fragment != null) {
             // update the main content by replacing fragments
-            FragmentManager fragmentManager = getFragmentManager();
+
+            FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
                     .replace(R.id.container, fragment)
                     .commit();
