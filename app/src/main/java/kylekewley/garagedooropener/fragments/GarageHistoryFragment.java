@@ -19,6 +19,8 @@ import kylekewley.garagedooropener.R;
  */
 public class GarageHistoryFragment extends Fragment {
 
+    private static final String GARAGE_HISTORY_TAG = "garage_history";
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -30,6 +32,11 @@ public class GarageHistoryFragment extends Fragment {
         Log.d("History", "Creating new instance");
         return fragment;
     }
+
+    public static String tag() {
+        return GARAGE_HISTORY_TAG;
+    }
+
     public GarageHistoryFragment() {
         // Required empty public constructor
     }

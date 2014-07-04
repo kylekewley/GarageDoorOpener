@@ -31,6 +31,8 @@ public class GaragePager extends Fragment implements
     private static final String ARG_NUM_DOORS = "num_doors";
     private static final String ARG_CURRENT_DOOR = "current_door";
 
+    private static final String GARAGE_PAGER_TAG = "garage_pager";
+
     /**
      * The total number of garage doors to display
      */
@@ -58,12 +60,18 @@ public class GaragePager extends Fragment implements
         GaragePager fragment = new GaragePager();
         fragment.numDoors = numDoors;
         fragment.currentDoor = currentDoor;
+
         Bundle args = new Bundle();
-        args.putInt(ARG_NUM_DOORS, numDoors);
-        args.putInt(ARG_CURRENT_DOOR, currentDoor);
+        fragment.storeProperties(args);
+
         fragment.setArguments(args);
         return fragment;
     }
+
+    public static String tag() {
+        return GARAGE_PAGER_TAG;
+    }
+
     public GaragePager() {
         // Required empty public constructor
     }
@@ -71,10 +79,6 @@ public class GaragePager extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            numDoors = getArguments().getInt(ARG_NUM_DOORS);
-            currentDoor = getArguments().getInt(ARG_CURRENT_DOOR);
-        }
 
     }
 
@@ -84,6 +88,10 @@ public class GaragePager extends Fragment implements
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
+        if (savedInstanceState != null) {
+            restoreProperties(savedInstanceState);
+        }
+
         if (v != null) {
             // Instantiate a ViewPager and a PagerAdapter.
             mPager = (ViewPager)v.findViewById(R.id.view_pager);
@@ -91,20 +99,45 @@ public class GaragePager extends Fragment implements
             mPager.setOnPageChangeListener(this);
             mPager.setClipChildren(false);
             mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
-            mPager.setOffscreenPageLimit(6);
+            mPager.setOffscreenPageLimit(numDoors-1);
             mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
             mPager.setAdapter(mPagerAdapter);
-            mPager.refreshDrawableState();
+
         }
 
         return v;
+    }
+
+    private void storeProperties(Bundle bundle) {
+
+        bundle.putInt(ARG_NUM_DOORS, numDoors);
+        bundle.putInt(ARG_CURRENT_DOOR, currentDoor);
+
+    }
+
+    private void restoreProperties(Bundle bundle) {
+        numDoors = bundle.getInt(ARG_NUM_DOORS);
+        currentDoor = bundle.getInt(ARG_CURRENT_DOOR);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mPager.setCurrentItem(currentDoor);
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        storeProperties(outState);
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_opener) + " " + currentDoor);
+        ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
     }
 
     @Override
@@ -114,8 +147,8 @@ public class GaragePager extends Fragment implements
 
     @Override
     public void onPageSelected(int i) {
-        currentDoor = i + 1;
-        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + currentDoor);
+        currentDoor = i;
+        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
     }
 
     @Override
@@ -127,7 +160,7 @@ public class GaragePager extends Fragment implements
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
+    private class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
 

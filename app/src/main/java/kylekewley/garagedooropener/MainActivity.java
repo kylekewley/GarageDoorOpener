@@ -35,7 +35,7 @@ public class MainActivity extends FragmentActivity implements
 
     private static final int SETTINGS_RESULT = 1;
 
-    private static final int NUM_GARAGE_DOORS = 3;
+    private static final int NUM_GARAGE_DOORS = 10;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -161,23 +161,43 @@ public class MainActivity extends FragmentActivity implements
     @Override
     public void onNavigationDrawerItemSelected(int position) {
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
         Fragment fragment = null;
 
+        String tag;
         switch (position) {
             case 0:
-                fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, position+1);
+                tag = GaragePager.tag();
                 break;
             case 1:
-                fragment = GarageHistoryFragment.newInstance();
+                tag = GarageHistoryFragment.tag();
                 break;
+            default:
+                tag = "";
         }
+
+        fragment = fragmentManager.findFragmentByTag(tag);
+
+        if (fragment == null) {
+            switch (position) {
+                case 0:
+                    fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, 3);
+                    tag = GaragePager.tag();
+                    break;
+                case 1:
+                    fragment = GarageHistoryFragment.newInstance();
+                    tag = GarageHistoryFragment.tag();
+                    break;
+            }
+        }
+
 
         if (fragment != null) {
             // update the main content by replacing fragments
 
-            FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
-                    .replace(R.id.container, fragment)
+                    .replace(R.id.container, fragment, tag)
                     .commit();
 
         }
