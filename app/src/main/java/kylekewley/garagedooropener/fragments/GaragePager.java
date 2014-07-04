@@ -2,6 +2,7 @@ package kylekewley.garagedooropener.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -79,7 +80,6 @@ public class GaragePager extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -99,13 +99,23 @@ public class GaragePager extends Fragment implements
             mPager.setOnPageChangeListener(this);
             mPager.setClipChildren(false);
             mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
-            mPager.setOffscreenPageLimit(numDoors-1);
+            mPager.setOffscreenPageLimit(4);
+
+
             mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
             mPager.setAdapter(mPagerAdapter);
+
 
         }
 
         return v;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mPager = null;
+        mPagerAdapter = null;
     }
 
     private void storeProperties(Bundle bundle) {
@@ -160,7 +170,7 @@ public class GaragePager extends Fragment implements
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
      */
-    private class ScreenSlidePagerAdapter extends FragmentPagerAdapter {
+    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
 
@@ -172,7 +182,6 @@ public class GaragePager extends Fragment implements
             Log.d("Tag", "NEW fragment");
             return GarageOpenerFragment.newInstance(position+1);
         }
-
 
 
         @Override

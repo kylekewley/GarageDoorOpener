@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -47,6 +48,10 @@ public class MainActivity extends FragmentActivity implements
      */
     private CharSequence mTitle;
 
+    /**
+     * Used to store the current fragment being displayed
+     */
+    private Fragment currentFragment;
 
     //Create the PiClient
     PiClient piClient = new PiClient();
@@ -165,42 +170,24 @@ public class MainActivity extends FragmentActivity implements
 
         Fragment fragment = null;
 
-        String tag;
         switch (position) {
             case 0:
-                tag = GaragePager.tag();
+                fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, 3);
                 break;
             case 1:
-                tag = GarageHistoryFragment.tag();
+                fragment = GarageHistoryFragment.newInstance();
                 break;
-            default:
-                tag = "";
         }
-
-        fragment = fragmentManager.findFragmentByTag(tag);
-
-        if (fragment == null) {
-            switch (position) {
-                case 0:
-                    fragment = GaragePager.newInstance(NUM_GARAGE_DOORS, 3);
-                    tag = GaragePager.tag();
-                    break;
-                case 1:
-                    fragment = GarageHistoryFragment.newInstance();
-                    tag = GarageHistoryFragment.tag();
-                    break;
-            }
-        }
-
 
         if (fragment != null) {
-            // update the main content by replacing fragments
+            fragmentManager.beginTransaction().
+                    replace(R.id.container, fragment).
+                    commit();
 
-            fragmentManager.beginTransaction()
-                    .replace(R.id.container, fragment, tag)
-                    .commit();
-
+            fragmentManager.executePendingTransactions();
+            currentFragment = fragment;
         }
+
     }
 
     /**

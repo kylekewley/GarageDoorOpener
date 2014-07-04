@@ -1,13 +1,12 @@
 package kylekewley.garagedooropener.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 
 /**
@@ -17,6 +16,12 @@ import kylekewley.garagedooropener.R;
  *
  */
 public class GarageOpenerFragment extends Fragment {
+
+    /**
+     * The tag used for debugging this class
+     */
+    private static final String GARAGE_OPENER_TAG = "garage_opener";
+
     /**
      * The fragment argument representing the garage ID number for this
      * fragment.
@@ -43,12 +48,14 @@ public class GarageOpenerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        Log.d(GARAGE_OPENER_TAG, "Creating View");
         return inflater.inflate(R.layout.fragment_garage_opener, container, false);
     }
 
