@@ -2,10 +2,9 @@ package kylekewley.garagedooropener.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import android.support.v4.view.PagerAdapter;
@@ -32,6 +31,7 @@ public class GaragePager extends Fragment implements
     private static final String ARG_NUM_DOORS = "num_doors";
     private static final String ARG_CURRENT_DOOR = "current_door";
 
+
     private static final String GARAGE_PAGER_TAG = "garage_pager";
 
     /**
@@ -57,10 +57,9 @@ public class GaragePager extends Fragment implements
 
 
 
-    public static GaragePager newInstance(int numDoors, int currentDoor) {
+    public static GaragePager newInstance(int numDoors) {
         GaragePager fragment = new GaragePager();
         fragment.numDoors = numDoors;
-        fragment.currentDoor = currentDoor;
 
         Bundle args = new Bundle();
         fragment.storeProperties(args);
@@ -80,6 +79,9 @@ public class GaragePager extends Fragment implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).
+                getInt(getString(R.string.pref_selected_door), 0);
+
     }
 
     @Override
@@ -127,13 +129,13 @@ public class GaragePager extends Fragment implements
 
     private void restoreProperties(Bundle bundle) {
         numDoors = bundle.getInt(ARG_NUM_DOORS);
-        currentDoor = bundle.getInt(ARG_CURRENT_DOOR);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         mPager.setCurrentItem(currentDoor);
+        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
 
     }
 
@@ -159,6 +161,8 @@ public class GaragePager extends Fragment implements
     public void onPageSelected(int i) {
         currentDoor = i;
         ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+        PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().
+                putInt(getString(R.string.pref_selected_door), i).commit();
     }
 
     @Override
