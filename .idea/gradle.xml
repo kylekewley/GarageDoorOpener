@@ -10,7 +10,6 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/PiClientAndroid" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/protobuf-java-2.5.0" />
           </set>
         </option>
       </GradleProjectSettings>

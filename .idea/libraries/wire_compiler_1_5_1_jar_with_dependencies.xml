@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="wire-compiler-1.5.1-jar-with-dependencies">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/PiClientAndroid/libs/wire-compiler-1.5.1-jar-with-dependencies.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
