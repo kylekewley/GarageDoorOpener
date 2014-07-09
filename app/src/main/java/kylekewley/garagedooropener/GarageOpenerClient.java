@@ -1,8 +1,8 @@
 package kylekewley.garagedooropener;
 
 import com.kylekewley.piclient.CustomBufferParser;
-import com.squareup.wire.Message;
-import protocolbuffers.GarageStatus;
+import com.kylekewley.piclient.PiClient;
+import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
  * Created by Kyle Kewley on 7/8/14.
@@ -27,7 +27,7 @@ public class GarageOpenerClient {
      * If the door went from closed to open in over DOOR_CLOSE_TIME seconds,
      * it will be marked as DOOR_NOT_CLOSED.
      */
-    enum DoorStatus {
+    public enum DoorStatus {
         DOOR_CLOSED,
         DOOR_NOT_CLOSED,
         DOOR_MOVING
@@ -35,9 +35,9 @@ public class GarageOpenerClient {
 
 
     /**
-     * The server that will be used for sending and recieving messages
+     * The client that will be used for sending and receiving messages
      */
-    private PiServer server;
+    private PiClient client;
 
 
     /**
@@ -53,7 +53,7 @@ public class GarageOpenerClient {
      * The class will send a message to the PiServer asking for the number of 
      * doors and update their status.
      */
-    public GarageDoor(PiServer server) {
+    public GarageOpenerClient(PiClient server) {
 
     }
 
@@ -79,7 +79,7 @@ public class GarageOpenerClient {
      * @param index The index of the garage door in the array.
      */
     public DoorStatus getDoorStatusAtIndex(int index) {
-
+        return DoorStatus.DOOR_CLOSED;
     }
 
     /**
@@ -99,7 +99,7 @@ public class GarageOpenerClient {
      * @return  The time since the garage status last changed.
      */
     public long getLastStatusChangeAtIndex(int index) {
-
+        return 0;
     }
 
     /**
@@ -112,7 +112,7 @@ public class GarageOpenerClient {
      * @return  true if moving, false if stopped.
      */
     public boolean isGarageMoving(long openTime) {
-        
+        return false;
     }
 
     /*
@@ -162,7 +162,8 @@ public class GarageOpenerClient {
 
     private class OpenerParser extends CustomBufferParser<GarageStatus> {
 
-        public void parse(Message message) {
+        @Override
+        public void parse(GarageStatus message) {
 
         }
     }
