@@ -62,6 +62,7 @@
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="android-support-v4" level="project" />
+    <orderEntry type="library" exported="" name="wire-compiler-1.5.1-jar-with-dependencies" level="project" />
     <orderEntry type="module" module-name="PiClientAndroid" exported="" />
   </component>
 </module>

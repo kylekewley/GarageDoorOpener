@@ -112,7 +112,7 @@ public class GarageOpenerClient {
      * @return  true if moving, false if stopped.
      */
     public boolean isGarageMoving(long openTime) {
-        return false;
+        return (((System.currentTimeMillis()/1000) - openTime) > DOOR_CLOSE_TIME);
     }
 
     /*
@@ -164,7 +164,22 @@ public class GarageOpenerClient {
 
         @Override
         public void parse(GarageStatus message) {
+            int index = message.garageId;
+            boolean closed = message.isClosed;
 
+            setLastStatusChangeAtIndex(index, message.timestamp);
+
+            if (closed) {
+                //Easy case
+                setDoorStatusAtIndex(index, DoorStatus.DOOR_CLOSED);
+            }else {
+                //Check if it is still moving
+                if (isGarageMoving(message.timestamp)) {
+                    setDoorStatusAtIndex(index, DoorStatus.DOOR_MOVING);
+                }else {
+                    setDoorStatusAtIndex(index, DoorStatus.DOOR_NOT_CLOSED);
+                }
+            }
         }
     }
 }
