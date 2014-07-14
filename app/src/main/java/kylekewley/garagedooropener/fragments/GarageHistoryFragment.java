@@ -29,7 +29,7 @@ public class GarageHistoryFragment extends Fragment {
      */
     public static GarageHistoryFragment newInstance() {
         GarageHistoryFragment fragment = new GarageHistoryFragment();
-        Log.d("History", "Creating new instance");
+        Log.d(GARAGE_HISTORY_TAG, "Creating new instance");
         return fragment;
     }
 

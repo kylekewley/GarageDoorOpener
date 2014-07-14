@@ -82,6 +82,8 @@ public class GaragePager extends Fragment implements
         currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).
                 getInt(getString(R.string.pref_selected_door), 0);
 
+
+        Log.d(GARAGE_PAGER_TAG, "Creating");
     }
 
     @Override
@@ -118,6 +120,8 @@ public class GaragePager extends Fragment implements
         super.onDestroy();
         mPager = null;
         mPagerAdapter = null;
+
+        Log.d(GARAGE_PAGER_TAG, "Destroying");
     }
 
     private void storeProperties(Bundle bundle) {
@@ -170,6 +174,7 @@ public class GaragePager extends Fragment implements
 
     }
 
+
     /**
      * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
      * sequence.
@@ -183,7 +188,6 @@ public class GaragePager extends Fragment implements
 
         @Override
         public Fragment getItem(int position) {
-            Log.d("Tag", "NEW fragment");
             return GarageOpenerFragment.newInstance(position+1);
         }
 
