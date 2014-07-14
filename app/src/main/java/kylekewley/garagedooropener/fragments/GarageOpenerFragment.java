@@ -48,14 +48,12 @@ public class GarageOpenerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        Log.d(GARAGE_OPENER_TAG, "Creating View");
         return inflater.inflate(R.layout.fragment_garage_opener, container, false);
     }
 
