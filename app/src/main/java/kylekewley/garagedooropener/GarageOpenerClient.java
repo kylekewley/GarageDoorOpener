@@ -1,8 +1,12 @@
 package kylekewley.garagedooropener;
 
+import kylekewley.garagedooropener.Constants.ServerParserId;
+import kylekewley.garagedooropener.Constants.ClientParserId;
+
 import com.kylekewley.piclient.CustomBufferParser;
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiMessage;
+
 
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
@@ -58,7 +62,15 @@ public class GarageOpenerClient {
      * @param client The client that will be used for sending and receiving messages
      */
     public GarageOpenerClient(PiClient client) {
+        boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
+                ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
 
+        if (!registered) {
+            throw new RuntimeException("The door updater parser was unable to be registered" +
+                    "for parser id: " + ClientParserId.DOOR_CHANGE_CLIENT_ID.getId() +
+                    " because the id is already used. The door status will not be updated. " +
+                    "Please use a unique id for each parser.");
+        }
     }
 
 
