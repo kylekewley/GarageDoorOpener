@@ -8,9 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -22,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kylekewley.garagedooropener.fragments.GarageHistoryFragment;
-import kylekewley.garagedooropener.fragments.GarageOpenerFragment;
-import kylekewley.garagedooropener.fragments.GarageOpenerOverviewFragment;
 import kylekewley.garagedooropener.fragments.GaragePager;
 import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
 
