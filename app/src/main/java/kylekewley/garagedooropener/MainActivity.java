@@ -1,6 +1,9 @@
 package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -11,10 +14,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.Switch;
+import android.widget.Toast;
 
 
-import com.kylekewley.piclient.PiClient;
-import com.kylekewley.piclient.PiClientCallbacks;
+import com.kylekewley.piclient.*;
+import com.kylekewley.piclient.protocolbuffers.ParseError;
+import com.squareup.wire.Message;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +30,7 @@ import java.util.List;
 import kylekewley.garagedooropener.fragments.GarageHistoryFragment;
 import kylekewley.garagedooropener.fragments.GaragePager;
 import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
+import kylekewley.garagedooropener.protocolbuffers.GarageMetaData;
 
 
 public class MainActivity extends FragmentActivity implements
@@ -31,8 +40,6 @@ public class MainActivity extends FragmentActivity implements
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
 
     private static final int SETTINGS_RESULT = 1;
-
-    private static final int NUM_GARAGE_DOORS = 10;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -49,8 +56,17 @@ public class MainActivity extends FragmentActivity implements
      */
     private Fragment currentFragment;
 
+    /**
+     * The number of doors able to be controlled by the server.
+     * This number is updated at launch with the requestGarageMetaData() method.
+     * After the PiMessage gets the data and sets the instance variables, the
+     * metaDataUpdated() method is called.
+     */
+    private int garageDoorCount = 0;
+
+
     //Create the PiClient
-    PiClient piClient = new PiClient();
+    PiClient piClient = new PiClient(this);
 
 
     @Override
@@ -97,6 +113,20 @@ public class MainActivity extends FragmentActivity implements
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        connectToServer();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        piClient.close();
     }
 
     /**
@@ -147,8 +177,66 @@ public class MainActivity extends FragmentActivity implements
         }
 
         piClient.connectToPiServer(getHostName(), getPortNumber());
+        requestGarageMetaData();
     }
 
+
+    private void requestGarageMetaData() {
+        int metaRequestId = Constants.ServerParserId.GARAGE_META_ID.getId();
+
+        //Create an empty message with the metaRequestId
+        PiMessage metaRequest = new PiMessage(metaRequestId);
+
+        metaRequest.setMessageCallbacks(new PiMessageCallbacks(GarageMetaData.class) {
+            @Override
+            public void serverReturnedData(byte[] data, PiMessage message) {
+
+            }
+
+            @Override
+            public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
+                GarageMetaData metaData = (GarageMetaData)response;
+
+                garageDoorCount = metaData.doorCount;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        metaDataChanged();
+                    }
+                });
+            }
+
+            @Override
+            public void serverSuccessfullyParsedMessage(PiMessage message) {
+
+            }
+
+            @Override
+            public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
+
+            }
+        });
+
+        piClient.sendMessage(metaRequest);
+    }
+
+
+    private void metaDataChanged() {
+
+        if (currentFragment != null) {
+            String tag = currentFragment.getTag();
+            if (tag.equals(getString(R.string.tag_garage_pager))) {
+                GaragePager tmp = (GaragePager)currentFragment;
+
+                tmp.setNumDoors(garageDoorCount);
+
+            } else if (tag.equals(getString(R.string.tag_garage_history))) {
+
+            }
+        }
+
+    }
     /*
     NavigationDrawerCallbacks
      */
@@ -165,19 +253,26 @@ public class MainActivity extends FragmentActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         Fragment fragment = null;
+        String tag = null;
 
         switch (position) {
             case 0:
-                fragment = GaragePager.newInstance(NUM_GARAGE_DOORS);
+                fragment = GaragePager.newInstance(garageDoorCount);
+                tag = getString(R.string.tag_garage_pager);
                 break;
             case 1:
                 fragment = GarageHistoryFragment.newInstance();
+                tag = getString(R.string.tag_garage_history);
                 break;
         }
 
         if (fragment != null) {
+            if (tag == null) {
+                tag = Integer.toString(fragment.getId());
+            }
+
             fragmentManager.beginTransaction().
-                    replace(R.id.container, fragment).
+                    replace(R.id.container, fragment, tag).
                     commit();
 
             fragmentManager.executePendingTransactions();
@@ -215,7 +310,12 @@ public class MainActivity extends FragmentActivity implements
      */
     @Override
     public void clientConnectedToHost(PiClient piClient) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
@@ -225,7 +325,12 @@ public class MainActivity extends FragmentActivity implements
      */
     @Override
     public void clientTryingConnectionToHost(PiClient piClient) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connecting", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
@@ -236,7 +341,12 @@ public class MainActivity extends FragmentActivity implements
      */
     @Override
     public void clientDisconnectedFromHost(PiClient piClient) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**
@@ -247,7 +357,25 @@ public class MainActivity extends FragmentActivity implements
      */
     @Override
     public void clientConnectionTimedOut(PiClient piClient) {
-
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("The connection to the host timed out. Try again?")
+                        .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                connectToServer();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Do nothing
+                            }
+                        }).create().show();
+            }
+        });
     }
 
     /**
@@ -258,8 +386,27 @@ public class MainActivity extends FragmentActivity implements
      * @param error    The error code associated with the error.
      */
     @Override
-    public void clientRaisedError(PiClient piClient, ClientErrorCode error) {
-
+    public void clientRaisedError(final PiClient piClient, final ClientErrorCode error) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage(error.getErrorMessage()
+                + " Do you want to reconnect to the server?")
+                        .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                connectToServer();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                piClient.close();
+                            }
+                        }).create().show();
+            }
+        });
     }
 
     /**
@@ -271,7 +418,28 @@ public class MainActivity extends FragmentActivity implements
      * @param error    The Exception that was raised.
      */
     @Override
-    public void clientRaisedError(PiClient piClient, Exception error) {
+    public void clientRaisedError(final PiClient piClient, Exception error) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("The client encountered an unknown error. " +
+                        "Do you want to reconnect to the server?")
+                        .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                connectToServer();
+                            }
+                        })
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Disconnect
+                                piClient.close();
+                            }
+                        }).create().show();
+            }
+        });
 
     }
 }

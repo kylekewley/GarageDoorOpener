@@ -14,5 +14,8 @@
     <string name="status_trying">Trying to connect.</string>
     <string name="status_failed">Unable to connect.</string>
 
+    <string name="tag_garage_history">garage_history</string>
+    <string name="tag_garage_pager">garage_pager</string>
+
     <string name="pref_selected_door">selected_door</string>
 </resources>

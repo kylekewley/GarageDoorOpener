@@ -8,6 +8,8 @@ package kylekewley.garagedooropener;
 public final class Constants {
 
     public enum ServerParserId {
+        GARAGE_META_ID(1000),       //Used to get information about the system such as the number
+                                    //of garage doors.
         GARAGE_OPENER_ID(1001),     //Used to send a door trigger message to the server.
         GARAGE_STATUS_ID(1002),     //Used to send a current garage status request to the server.
         GARAGE_HISTORY_ID(1003);    //Used to send a garage history request to the server.

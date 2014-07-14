@@ -26,18 +26,18 @@ import kylekewley.garagedooropener.R;
  *
  */
 public class GaragePager extends Fragment implements
-        ViewPager.OnPageChangeListener{
+        ViewPager.OnPageChangeListener {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_NUM_DOORS = "num_doors";
     private static final String ARG_CURRENT_DOOR = "current_door";
 
 
-    private static final String GARAGE_PAGER_TAG = "garage_pager";
+    public static final String GARAGE_PAGER_TAG = "garage_pager";
 
     /**
      * The total number of garage doors to display
      */
-    private int numDoors;
+    private volatile int numDoors;
 
     /**
      * The currentDoor being viewed
@@ -55,6 +55,10 @@ public class GaragePager extends Fragment implements
      */
     private PagerAdapter mPagerAdapter;
 
+    /**
+     * Is set to true the first time setNumDoors() is called.
+     */
+    private boolean initialized = false;
 
 
     public static GaragePager newInstance(int numDoors) {
@@ -68,12 +72,27 @@ public class GaragePager extends Fragment implements
         return fragment;
     }
 
-    public static String tag() {
-        return GARAGE_PAGER_TAG;
-    }
 
     public GaragePager() {
         // Required empty public constructor
+    }
+
+
+    /**
+     * Sets the number of doors and updates the view
+     *
+     * @param numDoors  The number of garage doors to display.
+     */
+    public void setNumDoors(int numDoors) {
+        this.numDoors = numDoors;
+
+        mPagerAdapter.notifyDataSetChanged();
+
+        if (!initialized) {
+            mPager.setCurrentItem(currentDoor);
+            onPageSelected(currentDoor);
+
+        }
     }
 
     @Override
@@ -81,7 +100,6 @@ public class GaragePager extends Fragment implements
         super.onCreate(savedInstanceState);
         currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).
                 getInt(getString(R.string.pref_selected_door), 0);
-
 
         Log.d(GARAGE_PAGER_TAG, "Creating");
     }
@@ -138,8 +156,13 @@ public class GaragePager extends Fragment implements
     @Override
     public void onStart() {
         super.onStart();
-        mPager.setCurrentItem(currentDoor);
-        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+
+        if (initialized) {
+            mPager.setCurrentItem(currentDoor);
+            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+        }else {
+            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_overview));
+        }
 
     }
 
@@ -153,7 +176,7 @@ public class GaragePager extends Fragment implements
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+        ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_overview));
     }
 
     @Override
@@ -195,6 +218,11 @@ public class GaragePager extends Fragment implements
         @Override
         public int getCount() {
             return numDoors;
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
         }
     }
 }
