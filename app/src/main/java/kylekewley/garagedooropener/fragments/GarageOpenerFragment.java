@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import kylekewley.garagedooropener.R;
 
@@ -28,6 +30,7 @@ public class GarageOpenerFragment extends Fragment {
      */
     private static final String ARG_GARAGE_ID = "garage_id";
 
+    private int garageId;
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -36,9 +39,12 @@ public class GarageOpenerFragment extends Fragment {
      */
     public static GarageOpenerFragment newInstance(int garageID) {
         GarageOpenerFragment fragment = new GarageOpenerFragment();
+
         Bundle args = new Bundle();
         args.putInt(ARG_GARAGE_ID, garageID);
+
         fragment.setArguments(args);
+
         return fragment;
     }
     public GarageOpenerFragment() {
@@ -48,13 +54,25 @@ public class GarageOpenerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (getArguments() != null) {
+            garageId = getArguments().getInt(ARG_GARAGE_ID);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_garage_opener, container, false);
+        View view = inflater.inflate(R.layout.fragment_garage_opener, container, false);
+
+        TextView button = (TextView)view.findViewById(R.id.page_number_text);
+
+        if (button != null) {
+            button.setText(Integer.toString(garageId));
+        }
+
+        return view;
     }
 
 }

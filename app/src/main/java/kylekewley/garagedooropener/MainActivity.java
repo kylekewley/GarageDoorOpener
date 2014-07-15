@@ -1,8 +1,10 @@
 package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,9 +16,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.Switch;
 import android.widget.Toast;
 
 
@@ -39,6 +38,8 @@ public class MainActivity extends FragmentActivity implements
     ///The tag to use for log messages from this class
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
 
+    private static final String DOOR_COUNT_KEY = "num_doors";
+
     private static final int SETTINGS_RESULT = 1;
 
     /**
@@ -52,9 +53,9 @@ public class MainActivity extends FragmentActivity implements
     private CharSequence mTitle;
 
     /**
-     * Used to store the current fragment being displayed
+     * Used to store the PiClient object
      */
-    private Fragment currentFragment;
+    private BackgroundFragment backgroundFragment;
 
     /**
      * The number of doors able to be controlled by the server.
@@ -63,10 +64,6 @@ public class MainActivity extends FragmentActivity implements
      * metaDataUpdated() method is called.
      */
     private int garageDoorCount = 0;
-
-
-    //Create the PiClient
-    PiClient piClient = new PiClient(this);
 
 
     @Override
@@ -82,9 +79,52 @@ public class MainActivity extends FragmentActivity implements
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        //Get saved values
+        if (savedInstanceState != null) {
+            garageDoorCount = savedInstanceState.getInt(DOOR_COUNT_KEY);
+        }
+
+        recoverBackgroundFragment();
     }
 
 
+
+    private void recoverBackgroundFragment() {
+        final String backgroundFragmentTag = "background_fragment";
+
+        android.app.FragmentManager manager = getFragmentManager();
+
+        // find the retained fragment on activity restarts
+        backgroundFragment = (BackgroundFragment)manager.findFragmentByTag(backgroundFragmentTag);
+
+
+        if (backgroundFragment == null) {
+            backgroundFragment = new BackgroundFragment();
+            backgroundFragment.getPiClient().setClientCallbacks(this);
+
+            manager.beginTransaction().add(backgroundFragment, backgroundFragmentTag).commit();
+
+            connectToServer();
+        }else {
+            if (!backgroundFragment.getPiClient().isConnected()) {
+                if (backgroundFragment.hasEnteredBackground()) {
+                    backgroundFragment.setEnteredBackground(false);
+                    connectToServer();
+                }
+            }
+        }
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (isApplicationBroughtToBackground()) {
+            backgroundFragment.getPiClient().close();
+            backgroundFragment.setEnteredBackground(true);
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,17 +156,9 @@ public class MainActivity extends FragmentActivity implements
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
-        connectToServer();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        piClient.close();
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(DOOR_COUNT_KEY, garageDoorCount);
     }
 
     /**
@@ -152,34 +184,19 @@ public class MainActivity extends FragmentActivity implements
     Private Methods
      */
 
-    /**
-     * @return  The hostname stored in the user preferences.
-     */
-    private String getHostName() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        return preferences.getString(getString(R.string.pref_host_id), getString(R.string.pref_default_host_name));
-    }
-
-
-    /**
-     * @return  The port number stored in the user preferences.
-     */
-    private int getPortNumber() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        return Integer.valueOf(preferences.getString(getString(R.string.pref_port_id), getString(R.string.pref_default_port_number)));
-    }
-
-    private void connectToServer() {
-        if (piClient.isConnected()) {
-            piClient.close();
+    private boolean isApplicationBroughtToBackground() {
+        ActivityManager am = (ActivityManager) this.getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
+        if (!tasks.isEmpty()) {
+            ComponentName topActivity = tasks.get(0).topActivity;
+            if (!topActivity.getPackageName().equals(this.getPackageName())) {
+                return true;
+            }
         }
 
-        piClient.connectToPiServer(getHostName(), getPortNumber());
-        requestGarageMetaData();
+        return false;
     }
-
 
     private void requestGarageMetaData() {
         int metaRequestId = Constants.ServerParserId.GARAGE_META_ID.getId();
@@ -218,25 +235,49 @@ public class MainActivity extends FragmentActivity implements
             }
         });
 
-        piClient.sendMessage(metaRequest);
+        backgroundFragment.getPiClient().sendMessage(metaRequest);
     }
 
 
     private void metaDataChanged() {
+        GaragePager pager = (GaragePager)getSupportFragmentManager().
+                findFragmentByTag(getString(R.string.tag_garage_pager));
 
-        if (currentFragment != null) {
-            String tag = currentFragment.getTag();
-            if (tag.equals(getString(R.string.tag_garage_pager))) {
-                GaragePager tmp = (GaragePager)currentFragment;
-
-                tmp.setNumDoors(garageDoorCount);
-
-            } else if (tag.equals(getString(R.string.tag_garage_history))) {
-
-            }
+        if (pager != null) {
+            pager.setNumDoors(garageDoorCount);
         }
 
     }
+
+
+    /**
+     * @return  The hostname stored in the user preferences.
+     */
+    private String getHostName() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        return preferences.getString(getString(R.string.pref_host_id), getString(R.string.pref_default_host_name));
+    }
+
+
+    /**
+     * @return  The port number stored in the user preferences.
+     */
+    private int getPortNumber() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        return Integer.valueOf(preferences.getString(getString(R.string.pref_port_id), getString(R.string.pref_default_port_number)));
+    }
+
+    public void connectToServer() {
+        if (backgroundFragment.getPiClient().isConnected()) {
+            backgroundFragment.getPiClient().close();
+        }
+
+        backgroundFragment.getPiClient().connectToPiServer(getHostName(), getPortNumber());
+        requestGarageMetaData();
+    }
+
     /*
     NavigationDrawerCallbacks
      */
@@ -257,13 +298,24 @@ public class MainActivity extends FragmentActivity implements
 
         switch (position) {
             case 0:
-                fragment = GaragePager.newInstance(garageDoorCount);
                 tag = getString(R.string.tag_garage_pager);
                 break;
             case 1:
-                fragment = GarageHistoryFragment.newInstance();
                 tag = getString(R.string.tag_garage_history);
                 break;
+        }
+
+        fragment = fragmentManager.findFragmentByTag(tag);
+
+        if (fragment == null) {
+            switch (position) {
+                case 0:
+                    fragment = GaragePager.newInstance(garageDoorCount);
+                    break;
+                case 1:
+                    fragment = GarageHistoryFragment.newInstance();
+                    break;
+            }
         }
 
         if (fragment != null) {
@@ -271,12 +323,12 @@ public class MainActivity extends FragmentActivity implements
                 tag = Integer.toString(fragment.getId());
             }
 
+
             fragmentManager.beginTransaction().
                     replace(R.id.container, fragment, tag).
                     commit();
 
             fragmentManager.executePendingTransactions();
-            currentFragment = fragment;
         }
 
     }
@@ -297,6 +349,7 @@ public class MainActivity extends FragmentActivity implements
 
         return titles;
     }
+
 
 
     /*
@@ -357,6 +410,7 @@ public class MainActivity extends FragmentActivity implements
      */
     @Override
     public void clientConnectionTimedOut(PiClient piClient) {
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -386,13 +440,13 @@ public class MainActivity extends FragmentActivity implements
      * @param error    The error code associated with the error.
      */
     @Override
-    public void clientRaisedError(final PiClient piClient, final ClientErrorCode error) {
+    public void clientRaisedError(final PiClient piClient, final PiClientCallbacks.ClientErrorCode error) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setMessage(error.getErrorMessage()
-                + " Do you want to reconnect to the server?")
+                        + " Do you want to reconnect to the server?")
                         .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -442,4 +496,5 @@ public class MainActivity extends FragmentActivity implements
         });
 
     }
+
 }

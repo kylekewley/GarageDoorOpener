@@ -1,13 +1,9 @@
 package kylekewley.garagedooropener.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +12,7 @@ import android.view.ViewGroup;
 
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
+import kylekewley.garagedooropener.PagerAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -29,7 +26,6 @@ public class GaragePager extends Fragment implements
         ViewPager.OnPageChangeListener {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_NUM_DOORS = "num_doors";
-    private static final String ARG_CURRENT_DOOR = "current_door";
 
 
     public static final String GARAGE_PAGER_TAG = "garage_pager";
@@ -58,15 +54,14 @@ public class GaragePager extends Fragment implements
     /**
      * Is set to true the first time setNumDoors() is called.
      */
-    private boolean initialized = false;
+    private boolean initialized;
 
 
     public static GaragePager newInstance(int numDoors) {
         GaragePager fragment = new GaragePager();
-        fragment.numDoors = numDoors;
 
         Bundle args = new Bundle();
-        fragment.storeProperties(args);
+        args.putInt(ARG_NUM_DOORS, numDoors);
 
         fragment.setArguments(args);
         return fragment;
@@ -86,23 +81,31 @@ public class GaragePager extends Fragment implements
     public void setNumDoors(int numDoors) {
         this.numDoors = numDoors;
 
-        mPagerAdapter.notifyDataSetChanged();
+        mPagerAdapter.setDoorCount(numDoors);
 
         if (!initialized) {
             mPager.setCurrentItem(currentDoor);
-            onPageSelected(currentDoor);
-
+            initialized = true;
         }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).
-                getInt(getString(R.string.pref_selected_door), 0);
 
-        Log.d(GARAGE_PAGER_TAG, "Creating");
+        currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity()
+                .getApplicationContext()).getInt(getString(R.string.pref_selected_door), 0);
+
+        if (getArguments() != null) {
+            numDoors = getArguments().getInt(ARG_NUM_DOORS);
+        }
+        if (savedInstanceState != null) {
+            numDoors = savedInstanceState.getInt(ARG_NUM_DOORS);
+        }
+
     }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -110,73 +113,36 @@ public class GaragePager extends Fragment implements
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
-        if (savedInstanceState != null) {
-            restoreProperties(savedInstanceState);
-        }
+        if (v == null) return v;
 
-        if (v != null) {
-            // Instantiate a ViewPager and a PagerAdapter.
-            mPager = (ViewPager)v.findViewById(R.id.view_pager);
+        // Instantiate a ViewPager and a PagerAdapter.
+        mPager = (ViewPager)v.findViewById(R.id.view_pager);
 
-            mPager.setOnPageChangeListener(this);
-            mPager.setClipChildren(false);
-            mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
-            mPager.setOffscreenPageLimit(4);
+        if (mPager == null) return v;
+
+        mPagerAdapter = new PagerAdapter(getChildFragmentManager(), numDoors);
+        mPager.setAdapter(mPagerAdapter);
+
+        mPager.setOnPageChangeListener(this);
+
+        //Set the current door if it is valid. This is used for when the activity is recreated after
+        //switching from the history tab back to the opener tab.
+        if (currentDoor < numDoors)
+            mPager.setCurrentItem(currentDoor, false);
+
+        mPager.setClipChildren(false);
+        mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
+        mPager.setOffscreenPageLimit(4);
 
 
-            mPagerAdapter = new ScreenSlidePagerAdapter(getFragmentManager());
-            mPager.setAdapter(mPagerAdapter);
-
-
-        }
 
         return v;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mPager = null;
-        mPagerAdapter = null;
-
-        Log.d(GARAGE_PAGER_TAG, "Destroying");
-    }
-
-    private void storeProperties(Bundle bundle) {
-
-        bundle.putInt(ARG_NUM_DOORS, numDoors);
-        bundle.putInt(ARG_CURRENT_DOOR, currentDoor);
-
-    }
-
-    private void restoreProperties(Bundle bundle) {
-        numDoors = bundle.getInt(ARG_NUM_DOORS);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        if (initialized) {
-            mPager.setCurrentItem(currentDoor);
-            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
-        }else {
-            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_overview));
-        }
-
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        storeProperties(outState);
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_overview));
+        outState.putInt(ARG_NUM_DOORS, numDoors);
     }
 
     @Override
@@ -195,34 +161,5 @@ public class GaragePager extends Fragment implements
     @Override
     public void onPageScrollStateChanged(int i) {
 
-    }
-
-
-    /**
-     * A simple pager adapter that represents 5 ScreenSlidePageFragment objects, in
-     * sequence.
-     */
-    private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
-        public ScreenSlidePagerAdapter(FragmentManager fm) {
-            super(fm);
-
-        }
-
-
-        @Override
-        public Fragment getItem(int position) {
-            return GarageOpenerFragment.newInstance(position+1);
-        }
-
-
-        @Override
-        public int getCount() {
-            return numDoors;
-        }
-
-        @Override
-        public int getItemPosition(Object object) {
-            return POSITION_NONE;
-        }
     }
 }
