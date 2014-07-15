@@ -140,9 +140,21 @@ public class GaragePager extends Fragment implements
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateActionBarTitle();
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_NUM_DOORS, numDoors);
+    }
+
+
+    private void updateActionBarTitle() {
+        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+
     }
 
     @Override
@@ -153,9 +165,10 @@ public class GaragePager extends Fragment implements
     @Override
     public void onPageSelected(int i) {
         currentDoor = i;
-        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
         PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().
                 putInt(getString(R.string.pref_selected_door), i).commit();
+
+        updateActionBarTitle();
     }
 
     @Override
