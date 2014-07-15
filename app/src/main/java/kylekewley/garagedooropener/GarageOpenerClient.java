@@ -1,12 +1,19 @@
 package kylekewley.garagedooropener;
 
+import android.util.Log;
+
 import kylekewley.garagedooropener.Constants.ServerParserId;
 import kylekewley.garagedooropener.Constants.ClientParserId;
 
 import com.kylekewley.piclient.CustomBufferParser;
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiMessage;
+import com.kylekewley.piclient.PiMessageCallbacks;
+import com.kylekewley.piclient.protocolbuffers.ParseError;
+import com.squareup.wire.Message;
 
+
+import java.util.List;
 
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
@@ -14,6 +21,8 @@ import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
  * Created by Kyle Kewley on 7/8/14.
  */
 public class GarageOpenerClient {
+
+    private static final String TAG = "garage_opener_client";
 
     /**
      * The time it takes the door to go from totally closed to totally open in seconds.
@@ -33,7 +42,7 @@ public class GarageOpenerClient {
      * If the door went from closed to open in over DOOR_CLOSE_TIME seconds,
      * it will be marked as DOOR_NOT_CLOSED.
      */
-    public enum DoorStatus {
+    public enum DoorPosition {
         DOOR_CLOSED,
         DOOR_NOT_CLOSED,
         DOOR_MOVING
@@ -55,15 +64,12 @@ public class GarageOpenerClient {
 
     private GarageOpenerView openerView;
 
-    
+
     /**
-     * Create the class with an unknown number of doors.
-     * The class will send a message to the PiServer asking for the number of 
-     * doors and update their status.
-     *
-     * @param client The client that will be used for sending and receiving messages
+     * Default parameters that are shared between all constructors.
+     * This MUST be called by all constructors for the class to work properly.
      */
-    public GarageOpenerClient(PiClient client) {
+    private void sharedConstructor() {
         boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
                 ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
 
@@ -74,6 +80,18 @@ public class GarageOpenerClient {
                     "Please use a unique id for each parser.");
         }
     }
+    
+    /**
+     * Create the class with an unknown number of doors.
+     * The class will send a message to the PiServer asking for the number of 
+     * doors and update their status.
+     *
+     * @param client The client that will be used for sending and receiving messages.
+     */
+    public GarageOpenerClient(PiClient client) {
+        sharedConstructor();
+        this.client = client;
+    }
 
 
     /**
@@ -81,9 +99,12 @@ public class GarageOpenerClient {
      *
      * @param numDoors  The number of doors to initialize. By default,
      *                  these doors will have IDs of 0...numDoors-1.
+     * @param client    The client that will be used for sending and receiving messages.
      */
-    public GarageOpenerClient(int numDoors) {
+    public GarageOpenerClient(int numDoors, PiClient client) {
+        sharedConstructor();
         initializeDoorArray(numDoors);
+        this.client = client;
     }
 
     /*
@@ -97,10 +118,10 @@ public class GarageOpenerClient {
      * @param newStatus The new status of the garage door based on the server
      *  data and the time since last change.
      */
-    public void setDoorStatusAtIndex(int index, DoorStatus newStatus) throws IndexOutOfBoundsException {
+    public void setDoorStatusAtIndex(int index, DoorPosition newStatus) throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
-        garageDoors[index].doorStatus = newStatus;
+        garageDoors[index].doorPosition = newStatus;
 
     }
 
@@ -109,11 +130,11 @@ public class GarageOpenerClient {
      *
      * @param index The index of the garage door in the array.
      */
-    public DoorStatus getDoorStatusAtIndex(int index) {
+    public DoorPosition getDoorStatusAtIndex(int index) throws IndexOutOfBoundsException{
         checkDoorIndexBounds(index);
 
 
-        return garageDoors[index].doorStatus;
+        return garageDoors[index].doorPosition;
     }
 
     /**
@@ -123,7 +144,8 @@ public class GarageOpenerClient {
      * @param lastStatusChange  The time given by the server that the garage
      *      status last changed.
      */
-    public void setLastStatusChangeAtIndex(int index, long lastStatusChange) {
+    public void setLastStatusChangeAtIndex(int index, long lastStatusChange)
+            throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
         garageDoors[index].lastStatusChange = lastStatusChange;
@@ -134,7 +156,7 @@ public class GarageOpenerClient {
      *
      * @return  The time since the garage status last changed.
      */
-    public long getLastStatusChangeAtIndex(int index) {
+    public long getLastStatusChangeAtIndex(int index) throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
         return garageDoors[index].lastStatusChange;
@@ -183,6 +205,16 @@ public class GarageOpenerClient {
         }
     }
 
+    public boolean triggerDoor(int doorIndex) {
+        if (doorIndex < getDoorCount() && client != null) {
+            //TODO: Code to send a trigger message.
+            Log.d(TAG, "Trigger garage door: " + doorIndex);
+            return true;
+        }
+
+        return false;
+    }
+
     /*
      * Private Methods
      */
@@ -199,7 +231,34 @@ public class GarageOpenerClient {
         garageDoors = new GarageDoor[numDoors];
 
         for (int i = 0; i < numDoors; i++) {
-            garageDoors[i] = new GarageDoor(i, -1, DoorStatus.DOOR_NOT_CLOSED);
+            garageDoors[i] = new GarageDoor(i, -1, DoorPosition.DOOR_NOT_CLOSED);
+        }
+
+        if (client != null) {
+            PiMessage statusRequest = new PiMessage(ServerParserId.GARAGE_STATUS_ID.getId());
+
+            statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
+                @Override
+                public void serverReturnedData(byte[] data, PiMessage message) {
+
+                }
+
+                @Override
+                public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
+                    GarageStatus status = (GarageStatus)response;
+                    parseDoorStatusList(status.doors);
+                    updateInterfaceChanges();
+                }
+                @Override
+                public void serverSuccessfullyParsedMessage(PiMessage message) {
+
+                }
+
+                @Override
+                public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
+                    Log.d(TAG, "Error parsing status request message.");
+                }
+            });
         }
     }
 
@@ -215,6 +274,38 @@ public class GarageOpenerClient {
         }
     }
 
+    /**
+     * Parse the full list of DoorStatus objects and update the array
+     */
+    private void parseDoorStatusList(List<GarageStatus.DoorStatus> doorStatusList) {
+        for (GarageStatus.DoorStatus status : doorStatusList) {
+            int index = status.garageId;
+            boolean closed = status.isClosed;
+
+            setLastStatusChangeAtIndex(index, status.timestamp);
+
+            if (closed) {
+                //Easy case
+                setDoorStatusAtIndex(index, DoorPosition.DOOR_CLOSED);
+            }else {
+                //Check if it is still moving
+                if (isGarageMoving(status.timestamp)) {
+                    setDoorStatusAtIndex(index, DoorPosition.DOOR_MOVING);
+                }else {
+                    setDoorStatusAtIndex(index, DoorPosition.DOOR_NOT_CLOSED);
+                }
+            }
+        }
+    }
+
+    private void updateInterfaceChanges() {
+        openerView.setGarageDoorCount(getDoorCount());
+
+        for (int i = 0; i < getDoorCount(); i++) {
+            openerView.updateGarageView(i, garageDoors[i].doorPosition);
+        }
+    }
+
 
 
 
@@ -225,7 +316,7 @@ public class GarageOpenerClient {
         /**
          * The current status of the door.
          */
-        public DoorStatus doorStatus;
+        public DoorPosition doorPosition;
 
         /**
          * The last time the garage status changed in seconds since Jan 1, 1970.
@@ -253,13 +344,13 @@ public class GarageOpenerClient {
          * @param doorId  The ID of the garage door.
          * @param lastStatusChange  The epoch time since the garage status
          *      last changed in seconds.
-         * @param doorStatus        The status of the garage door.
+         * @param doorPosition        The status of the garage door.
          */
         public GarageDoor(int doorId, long lastStatusChange,
-                DoorStatus doorStatus) {
+                DoorPosition doorPosition) {
             this.doorId = doorId;
             this.lastStatusChange = lastStatusChange;
-            this.doorStatus = doorStatus;
+            this.doorPosition = doorPosition;
         }
     }
 
@@ -267,22 +358,8 @@ public class GarageOpenerClient {
 
         @Override
         public void parse(GarageStatus message) {
-            int index = message.garageId;
-            boolean closed = message.isClosed;
-
-            setLastStatusChangeAtIndex(index, message.timestamp);
-
-            if (closed) {
-                //Easy case
-                setDoorStatusAtIndex(index, DoorStatus.DOOR_CLOSED);
-            }else {
-                //Check if it is still moving
-                if (isGarageMoving(message.timestamp)) {
-                    setDoorStatusAtIndex(index, DoorStatus.DOOR_MOVING);
-                }else {
-                    setDoorStatusAtIndex(index, DoorStatus.DOOR_NOT_CLOSED);
-                }
-            }
+            parseDoorStatusList(message.doors);
+            updateInterfaceChanges();
         }
     }
 }

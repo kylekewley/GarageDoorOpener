@@ -1,8 +1,5 @@
 package kylekewley.garagedooropener;
 
-import kylekewley.garagedooropener.GarageOpenerClient;
-import kylekewley.garagedooropener.GarageOpenerClient.DoorStatus;
-
 public interface GarageOpenerView {
 
     /**
@@ -19,7 +16,7 @@ public interface GarageOpenerView {
      * @param index     The index of the garage door view to update.
      * @param status    The new garage status.
      */
-    public void updateGarageView(int index, DoorStatus status);
+    public void updateGarageView(int index, GarageOpenerClient.DoorPosition status);
 
     /**
      * Sets the number of doors and updates the view

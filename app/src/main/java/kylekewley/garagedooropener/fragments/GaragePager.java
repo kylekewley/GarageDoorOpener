@@ -181,12 +181,14 @@ public class GaragePager extends Fragment implements
     }
 
     @Override
-    public void updateGarageView(int index, GarageOpenerClient.DoorStatus status) {
+    public void updateGarageView(int index, GarageOpenerClient.DoorPosition status) {
         //TODO: Implement method when we get garage pictures.
     }
 
     @Override
     public void setGarageDoorCount(int garageDoorCount) {
+        if (numDoors == garageDoorCount) return;
+
         this.numDoors = garageDoorCount;
         if (mPagerAdapter != null) {
             mPagerAdapter.setDoorCount(garageDoorCount);

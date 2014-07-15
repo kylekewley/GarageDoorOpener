@@ -1,8 +1,5 @@
 package test;
 
-import com.kylekewley.piclient.PiClient;
-
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import kylekewley.garagedooropener.GarageOpenerClient;
@@ -22,14 +19,14 @@ public class GarageOpenerClientTest extends TestCase {
 
     public void testSetDoorStatusAtIndex() throws Exception {
         for (int i = 0; i < NUMBER_OF_DOORS; i++) {
-            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorStatus.DOOR_CLOSED);
-            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorStatus.DOOR_CLOSED);
+            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorPosition.DOOR_CLOSED);
+            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorPosition.DOOR_CLOSED);
 
-            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorStatus.DOOR_MOVING);
-            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorStatus.DOOR_MOVING);
+            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorPosition.DOOR_MOVING);
+            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorPosition.DOOR_MOVING);
 
-            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorStatus.DOOR_NOT_CLOSED);
-            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorStatus.DOOR_NOT_CLOSED);
+            openerClient.setDoorStatusAtIndex(i, GarageOpenerClient.DoorPosition.DOOR_NOT_CLOSED);
+            assertEquals(openerClient.getDoorStatusAtIndex(i), GarageOpenerClient.DoorPosition.DOOR_NOT_CLOSED);
         }
     }
 
