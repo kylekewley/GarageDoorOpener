@@ -20,4 +20,11 @@ public interface GarageOpenerView {
      * @param status    The new garage status.
      */
     public void updateGarageView(int index, DoorStatus status);
+
+    /**
+     * Sets the number of doors and updates the view
+     *
+     * @param garageDoorCount  The number of garage doors to display.
+     */
+    public void setGarageDoorCount(int garageDoorCount);
 }

@@ -53,6 +53,8 @@ public class GarageOpenerClient {
      */
     private GarageDoor[] garageDoors;
 
+    private GarageOpenerView openerView;
+
     
     /**
      * Create the class with an unknown number of doors.
@@ -162,6 +164,25 @@ public class GarageOpenerClient {
         return (((System.currentTimeMillis()/1000) - openTime) < DOOR_CLOSE_TIME);
     }
 
+    public void setOpenerView(GarageOpenerView view) {
+        this.openerView = view;
+
+        openerView.setGarageOpenerClient(this);
+        openerView.setGarageDoorCount(getNumberOfGarageDoors());
+    }
+
+    public int getDoorCount() {
+        return garageDoors.length;
+    }
+
+    public void setGarageDoorCount(int count) {
+        initializeDoorArray(count);
+
+        if (openerView != null) {
+            openerView.setGarageDoorCount(count);
+        }
+    }
+
     /*
      * Private Methods
      */
@@ -194,14 +215,6 @@ public class GarageOpenerClient {
         }
     }
 
-    /**
-     * Gets the number of garage doors by sending a request to the server.
-     *
-     * @param piClient  A piClient instance that the message will be sent through.
-     */
-    private void requestNumberOfDoors(PiClient piClient) {
-
-    }
 
 
 

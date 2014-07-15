@@ -33,8 +33,7 @@ import kylekewley.garagedooropener.protocolbuffers.GarageMetaData;
 
 
 public class MainActivity extends FragmentActivity implements
-        NavigationDrawerFragment.NavigationDrawerCallbacks,
-        PiClientCallbacks {
+        NavigationDrawerFragment.NavigationDrawerCallbacks {
     ///The tag to use for log messages from this class
     private static final String MAIN_ACTIVITY_TAG = "MainActivity";
 
@@ -56,6 +55,7 @@ public class MainActivity extends FragmentActivity implements
      * Used to store the PiClient object
      */
     private BackgroundFragment backgroundFragment;
+
 
     /**
      * The number of doors able to be controlled by the server.
@@ -101,18 +101,8 @@ public class MainActivity extends FragmentActivity implements
 
         if (backgroundFragment == null) {
             backgroundFragment = new BackgroundFragment();
-            backgroundFragment.getPiClient().setClientCallbacks(this);
 
             manager.beginTransaction().add(backgroundFragment, backgroundFragmentTag).commit();
-
-            connectToServer();
-        }else {
-            if (!backgroundFragment.getPiClient().isConnected()) {
-                if (backgroundFragment.hasEnteredBackground()) {
-                    backgroundFragment.setEnteredBackground(false);
-                    connectToServer();
-                }
-            }
         }
     }
 
@@ -198,85 +188,11 @@ public class MainActivity extends FragmentActivity implements
         return false;
     }
 
-    private void requestGarageMetaData() {
-        int metaRequestId = Constants.ServerParserId.GARAGE_META_ID.getId();
-
-        //Create an empty message with the metaRequestId
-        PiMessage metaRequest = new PiMessage(metaRequestId);
-
-        metaRequest.setMessageCallbacks(new PiMessageCallbacks(GarageMetaData.class) {
-            @Override
-            public void serverReturnedData(byte[] data, PiMessage message) {
-
-            }
-
-            @Override
-            public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
-                GarageMetaData metaData = (GarageMetaData)response;
-
-                garageDoorCount = metaData.doorCount;
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        metaDataChanged();
-                    }
-                });
-            }
-
-            @Override
-            public void serverSuccessfullyParsedMessage(PiMessage message) {
-
-            }
-
-            @Override
-            public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
-
-            }
-        });
-
-        backgroundFragment.getPiClient().sendMessage(metaRequest);
-    }
 
 
-    private void metaDataChanged() {
-        GaragePager pager = (GaragePager)getSupportFragmentManager().
-                findFragmentByTag(getString(R.string.tag_garage_pager));
-
-        if (pager != null) {
-            pager.setNumDoors(garageDoorCount);
-        }
-
-    }
 
 
-    /**
-     * @return  The hostname stored in the user preferences.
-     */
-    private String getHostName() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        return preferences.getString(getString(R.string.pref_host_id), getString(R.string.pref_default_host_name));
-    }
-
-
-    /**
-     * @return  The port number stored in the user preferences.
-     */
-    private int getPortNumber() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
-        return Integer.valueOf(preferences.getString(getString(R.string.pref_port_id), getString(R.string.pref_default_port_number)));
-    }
-
-    public void connectToServer() {
-        if (backgroundFragment.getPiClient().isConnected()) {
-            backgroundFragment.getPiClient().close();
-        }
-
-        backgroundFragment.getPiClient().connectToPiServer(getHostName(), getPortNumber());
-        requestGarageMetaData();
-    }
 
     /*
     NavigationDrawerCallbacks
@@ -311,6 +227,7 @@ public class MainActivity extends FragmentActivity implements
             switch (position) {
                 case 0:
                     fragment = GaragePager.newInstance(garageDoorCount);
+                    backgroundFragment.setGarageOpenerView((GaragePager)fragment);
                     break;
                 case 1:
                     fragment = GarageHistoryFragment.newInstance();
@@ -352,149 +269,5 @@ public class MainActivity extends FragmentActivity implements
 
 
 
-    /*
-    PiClient Callbacks class
-     */
-
-    /**
-     * This method is called when the client successfully connects to the PiServer host.
-     *
-     * @param piClient The client that made the successful connection
-     */
-    @Override
-    public void clientConnectedToHost(PiClient piClient) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
-     * Called when the client attempts to connect to the PiServer.
-     *
-     * @param piClient The client trying to make the connection.
-     */
-    @Override
-    public void clientTryingConnectionToHost(PiClient piClient) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, "Connecting", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
-     * Called when the client successfully disconnects from the host. The PiClient
-     * object can now be safely destroyed.
-     *
-     * @param piClient The now disconnected PiClient object
-     */
-    @Override
-    public void clientDisconnectedFromHost(PiClient piClient) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    /**
-     * Called if the piClient is unable to connect to the host in the allotted timeout.
-     * The piClient is no longer trying to make a connection to the host.
-     *
-     * @param piClient The client that was unable to make a connection.
-     */
-    @Override
-    public void clientConnectionTimedOut(PiClient piClient) {
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("The connection to the host timed out. Try again?")
-                        .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                connectToServer();
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                //Do nothing
-                            }
-                        }).create().show();
-            }
-        });
-    }
-
-    /**
-     * Called if there is an error sent by the server. As of now, this method is not being
-     * used because parsing errors are sent back and handled by the PiMessage object that caused them.
-     *
-     * @param piClient The client that raised the error.
-     * @param error    The error code associated with the error.
-     */
-    @Override
-    public void clientRaisedError(final PiClient piClient, final PiClientCallbacks.ClientErrorCode error) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage(error.getErrorMessage()
-                        + " Do you want to reconnect to the server?")
-                        .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                connectToServer();
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                piClient.close();
-                            }
-                        }).create().show();
-            }
-        });
-    }
-
-    /**
-     * Called if there is an exception raised where we don't know how to deal with it.
-     * This is more of a debugging tool and will only be called for exceptions that I don't understand.
-     * Hopefully after testing, I won't have to use this callback.
-     *
-     * @param piClient The client that raised the error.
-     * @param error    The Exception that was raised.
-     */
-    @Override
-    public void clientRaisedError(final PiClient piClient, Exception error) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setMessage("The client encountered an unknown error. " +
-                        "Do you want to reconnect to the server?")
-                        .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                connectToServer();
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                //Disconnect
-                                piClient.close();
-                            }
-                        }).create().show();
-            }
-        });
-
-    }
 
 }

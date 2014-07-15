@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import kylekewley.garagedooropener.GarageOpenerClient;
+import kylekewley.garagedooropener.GarageOpenerView;
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 import kylekewley.garagedooropener.PagerAdapter;
@@ -23,7 +25,8 @@ import kylekewley.garagedooropener.PagerAdapter;
  *
  */
 public class GaragePager extends Fragment implements
-        ViewPager.OnPageChangeListener {
+        ViewPager.OnPageChangeListener,
+        GarageOpenerView {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_NUM_DOORS = "num_doors";
 
@@ -56,6 +59,11 @@ public class GaragePager extends Fragment implements
      */
     private boolean initialized;
 
+    /**
+     * The object used to send server requests
+     */
+    private GarageOpenerClient garageOpenerClient;
+
 
     public static GaragePager newInstance(int numDoors) {
         GaragePager fragment = new GaragePager();
@@ -73,21 +81,6 @@ public class GaragePager extends Fragment implements
     }
 
 
-    /**
-     * Sets the number of doors and updates the view
-     *
-     * @param numDoors  The number of garage doors to display.
-     */
-    public void setNumDoors(int numDoors) {
-        this.numDoors = numDoors;
-
-        mPagerAdapter.setDoorCount(numDoors);
-
-        if (!initialized) {
-            mPager.setCurrentItem(currentDoor);
-            initialized = true;
-        }
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,6 +136,8 @@ public class GaragePager extends Fragment implements
     public void onStart() {
         super.onStart();
         updateActionBarTitle();
+        if (garageOpenerClient == null)
+            Log.d(GARAGE_PAGER_TAG, "Garage opener client null");
     }
 
     @Override
@@ -175,4 +170,32 @@ public class GaragePager extends Fragment implements
     public void onPageScrollStateChanged(int i) {
 
     }
+
+    @Override
+    public void setGarageOpenerClient(GarageOpenerClient openerClient) {
+        this.garageOpenerClient = openerClient;
+    }
+
+    public GarageOpenerClient getGarageOpenerClient() {
+        return garageOpenerClient;
+    }
+
+    @Override
+    public void updateGarageView(int index, GarageOpenerClient.DoorStatus status) {
+        //TODO: Implement method when we get garage pictures.
+    }
+
+    @Override
+    public void setGarageDoorCount(int garageDoorCount) {
+        this.numDoors = garageDoorCount;
+        if (mPagerAdapter != null) {
+            mPagerAdapter.setDoorCount(garageDoorCount);
+
+            if (!initialized) {
+                mPager.setCurrentItem(currentDoor);
+                initialized = true;
+            }
+        }
+    }
+
 }

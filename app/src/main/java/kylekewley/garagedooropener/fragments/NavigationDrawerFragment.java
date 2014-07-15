@@ -85,6 +85,11 @@ public class NavigationDrawerFragment extends Fragment {
             mFromSavedInstanceState = true;
         }
 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
         selectItem(mCurrentSelectedPosition);
     }
 

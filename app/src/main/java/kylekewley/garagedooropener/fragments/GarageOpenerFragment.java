@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.R;
 
 /**
@@ -31,6 +32,7 @@ public class GarageOpenerFragment extends Fragment {
     private static final String ARG_GARAGE_ID = "garage_id";
 
     private int garageId;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
