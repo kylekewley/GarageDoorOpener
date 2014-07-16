@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.GarageOpenerView;
@@ -114,6 +117,7 @@ public class GaragePager extends Fragment implements
         if (mPager == null) return v;
 
         mPagerAdapter = new PagerAdapter(getChildFragmentManager(), numDoors);
+
         mPager.setAdapter(mPagerAdapter);
 
         mPager.setOnPageChangeListener(this);
@@ -181,8 +185,30 @@ public class GaragePager extends Fragment implements
     }
 
     @Override
-    public void updateGarageView(int index, GarageOpenerClient.DoorPosition status) {
+    public void updateGarageView(final int index, final GarageOpenerClient.DoorPosition status) {
         //TODO: Implement method when we get garage pictures.
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager().getFragments().get(index);
+                if (f != null) {
+                    TextView textView = f.getTextView();
+
+                    if (textView != null) {
+
+                        String text;
+
+                        if (status == GarageOpenerClient.DoorPosition.DOOR_CLOSED) text = "Closed";
+                        else if (status == GarageOpenerClient.DoorPosition.DOOR_MOVING) text = "Moving";
+                        else text = "Open";
+
+                        textView.setText(text);
+                    }
+                }
+            }
+        });
     }
 
     @Override

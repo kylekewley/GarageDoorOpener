@@ -1,5 +1,7 @@
 package test;
 
+import com.kylekewley.piclient.PiClient;
+
 import junit.framework.TestCase;
 
 import kylekewley.garagedooropener.GarageOpenerClient;
@@ -13,8 +15,10 @@ public class GarageOpenerClientTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
 
+        PiClient client = new PiClient();
+
         //Create a new GarageOpenerClient object
-        openerClient = new GarageOpenerClient(NUMBER_OF_DOORS);
+        openerClient = new GarageOpenerClient(NUMBER_OF_DOORS, client);
     }
 
     public void testSetDoorStatusAtIndex() throws Exception {

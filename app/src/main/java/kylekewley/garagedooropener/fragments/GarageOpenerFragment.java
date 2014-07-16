@@ -33,6 +33,8 @@ public class GarageOpenerFragment extends Fragment {
 
     private int garageId;
 
+    private TextView textView;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -68,13 +70,26 @@ public class GarageOpenerFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_garage_opener, container, false);
 
-        TextView button = (TextView)view.findViewById(R.id.page_number_text);
+        textView = (TextView)view.findViewById(R.id.page_number_text);
 
-        if (button != null) {
-            button.setText(Integer.toString(garageId));
+        if (textView != null) {
+            textView.setText(Integer.toString(garageId));
         }
 
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        if (getView() != null) {
+            textView = (TextView)getView().findViewById(R.id.page_number_text);
+        }
+    }
+
+    public TextView getTextView() {
+        return textView;
     }
 
 }

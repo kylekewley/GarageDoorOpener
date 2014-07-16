@@ -69,7 +69,7 @@ public class GarageOpenerClient {
      * Default parameters that are shared between all constructors.
      * This MUST be called by all constructors for the class to work properly.
      */
-    private void sharedConstructor() {
+    private void sharedConstructor(PiClient client) {
         boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
                 ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
 
@@ -89,7 +89,7 @@ public class GarageOpenerClient {
      * @param client The client that will be used for sending and receiving messages.
      */
     public GarageOpenerClient(PiClient client) {
-        sharedConstructor();
+        sharedConstructor(client);
         this.client = client;
     }
 
@@ -102,7 +102,7 @@ public class GarageOpenerClient {
      * @param client    The client that will be used for sending and receiving messages.
      */
     public GarageOpenerClient(int numDoors, PiClient client) {
-        sharedConstructor();
+        sharedConstructor(client);
         initializeDoorArray(numDoors);
         this.client = client;
     }
@@ -259,6 +259,8 @@ public class GarageOpenerClient {
                     Log.d(TAG, "Error parsing status request message.");
                 }
             });
+
+            client.sendMessage(statusRequest);
         }
     }
 
