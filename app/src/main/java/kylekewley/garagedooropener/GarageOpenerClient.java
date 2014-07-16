@@ -72,7 +72,7 @@ public class GarageOpenerClient {
     private void sharedConstructor(PiClient client) {
         boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
                 ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
-
+        garageDoors = new GarageDoor[0];
         if (!registered) {
             throw new RuntimeException("The door updater parser was unable to be registered" +
                     "for parser id: " + ClientParserId.DOOR_CHANGE_CLIENT_ID.getId() +

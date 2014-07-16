@@ -92,7 +92,7 @@ public class GaragePager extends Fragment implements
         currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity()
                 .getApplicationContext()).getInt(getString(R.string.pref_selected_door), 0);
 
-        if (getArguments() != null) {
+        if (getArguments() != null && !initialized) {
             numDoors = getArguments().getInt(ARG_NUM_DOORS);
         }
         if (savedInstanceState != null) {
@@ -191,7 +191,7 @@ public class GaragePager extends Fragment implements
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
+                //TODO: Make sure we're getting the right fragment
                 GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager().getFragments().get(index);
                 if (f != null) {
                     TextView textView = f.getTextView();
@@ -221,9 +221,10 @@ public class GaragePager extends Fragment implements
 
             if (!initialized) {
                 mPager.setCurrentItem(currentDoor);
-                initialized = true;
             }
         }
+
+        initialized = true;
     }
 
 }
