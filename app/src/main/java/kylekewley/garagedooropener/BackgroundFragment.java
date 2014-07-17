@@ -2,22 +2,17 @@ package kylekewley.garagedooropener;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiClientCallbacks;
-import com.kylekewley.piclient.PiMessage;
-import com.kylekewley.piclient.PiMessageCallbacks;
-import com.kylekewley.piclient.protocolbuffers.ParseError;
-import com.squareup.wire.Message;
 
-import kylekewley.garagedooropener.fragments.GaragePager;
-import kylekewley.garagedooropener.protocolbuffers.GarageMetaData;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -26,7 +21,8 @@ import kylekewley.garagedooropener.protocolbuffers.GarageMetaData;
  */
 public class BackgroundFragment extends Fragment implements PiClientCallbacks {
 
-    private PiClient piClient;
+    @NotNull
+    private final PiClient piClient;
 
     private boolean enteredBackground = true;
 
@@ -34,7 +30,8 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     /**
      * Used as a back end for the GaragePager fragment
      */
-    GarageOpenerClient garageOpenerClient;
+    @NotNull
+    final GarageOpenerClient garageOpenerClient;
 
 
     public BackgroundFragment() {
@@ -72,6 +69,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     /**
      * @return A not null piClient instance.
      */
+    @NotNull
     public PiClient getPiClient() {
         return piClient;
     }
@@ -95,6 +93,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     /**
      * @return  The garageOpenerClient object in charge of updating the opener view.
      */
+    @NotNull
     public GarageOpenerClient getGarageOpenerClient() {
         return garageOpenerClient;
     }
@@ -224,7 +223,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
      * @param error    The error code associated with the error.
      */
     @Override
-    public void clientRaisedError(final PiClient piClient, final PiClientCallbacks.ClientErrorCode error) {
+    public void clientRaisedError(@NotNull final PiClient piClient, @NotNull final PiClientCallbacks.ClientErrorCode error) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -256,7 +255,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
      * @param error    The Exception that was raised.
      */
     @Override
-    public void clientRaisedError(final PiClient piClient, Exception error) {
+    public void clientRaisedError(@NotNull final PiClient piClient, Exception error) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {

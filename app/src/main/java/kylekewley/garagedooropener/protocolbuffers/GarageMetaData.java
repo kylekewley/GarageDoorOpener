@@ -5,6 +5,9 @@ package kylekewley.garagedooropener.protocolbuffers;
 import com.squareup.wire.Message;
 import com.squareup.wire.ProtoField;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import static com.squareup.wire.Message.Datatype.INT32;
 
 public final class GarageMetaData extends Message {
@@ -18,7 +21,7 @@ public final class GarageMetaData extends Message {
     this.doorCount = doorCount;
   }
 
-  private GarageMetaData(Builder builder) {
+  private GarageMetaData(@NotNull Builder builder) {
     this(builder.doorCount);
     setBuilder(builder);
   }
@@ -43,17 +46,19 @@ public final class GarageMetaData extends Message {
     public Builder() {
     }
 
-    public Builder(GarageMetaData message) {
+    public Builder(@Nullable GarageMetaData message) {
       super(message);
       if (message == null) return;
       this.doorCount = message.doorCount;
     }
 
+    @NotNull
     public Builder doorCount(Integer doorCount) {
       this.doorCount = doorCount;
       return this;
     }
 
+    @NotNull
     @Override
     public GarageMetaData build() {
       return new GarageMetaData(this);

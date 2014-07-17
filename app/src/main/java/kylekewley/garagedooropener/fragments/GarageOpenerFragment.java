@@ -2,14 +2,13 @@ package kylekewley.garagedooropener.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
-import kylekewley.garagedooropener.GarageOpenerClient;
+import org.jetbrains.annotations.NotNull;
+
 import kylekewley.garagedooropener.R;
 
 /**
@@ -41,6 +40,7 @@ public class GarageOpenerFragment extends Fragment {
      *
      * @return A new instance of fragment GarageOpenerFragment.
      */
+    @NotNull
     public static GarageOpenerFragment newInstance(int garageID) {
         GarageOpenerFragment fragment = new GarageOpenerFragment();
 
@@ -65,7 +65,7 @@ public class GarageOpenerFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_garage_opener, container, false);

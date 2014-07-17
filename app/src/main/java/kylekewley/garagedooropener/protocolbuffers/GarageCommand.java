@@ -6,6 +6,9 @@ import com.squareup.wire.Message;
 import com.squareup.wire.ProtoEnum;
 import com.squareup.wire.ProtoField;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import static com.squareup.wire.Message.Datatype.ENUM;
 import static com.squareup.wire.Message.Datatype.UINT32;
 import static com.squareup.wire.Message.Label.REQUIRED;
@@ -26,7 +29,7 @@ public final class GarageCommand extends Message {
     this.garageId = garageId;
   }
 
-  private GarageCommand(Builder builder) {
+  private GarageCommand(@NotNull Builder builder) {
     this(builder.command, builder.garageId);
     setBuilder(builder);
   }
@@ -59,23 +62,26 @@ public final class GarageCommand extends Message {
     public Builder() {
     }
 
-    public Builder(GarageCommand message) {
+    public Builder(@Nullable GarageCommand message) {
       super(message);
       if (message == null) return;
       this.command = message.command;
       this.garageId = message.garageId;
     }
 
+    @NotNull
     public Builder command(Command command) {
       this.command = command;
       return this;
     }
 
+    @NotNull
     public Builder garageId(Integer garageId) {
       this.garageId = garageId;
       return this;
     }
 
+    @NotNull
     @Override
     public GarageCommand build() {
       checkRequiredFields();

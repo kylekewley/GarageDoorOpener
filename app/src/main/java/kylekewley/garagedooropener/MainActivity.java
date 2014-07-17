@@ -2,26 +2,19 @@ package kylekewley.garagedooropener;
 
 import android.app.ActionBar;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
-
-import com.kylekewley.piclient.*;
-import com.kylekewley.piclient.protocolbuffers.ParseError;
-import com.squareup.wire.Message;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +22,6 @@ import java.util.List;
 import kylekewley.garagedooropener.fragments.GarageHistoryFragment;
 import kylekewley.garagedooropener.fragments.GaragePager;
 import kylekewley.garagedooropener.fragments.NavigationDrawerFragment;
-import kylekewley.garagedooropener.protocolbuffers.GarageMetaData;
 
 
 public class MainActivity extends FragmentActivity implements
@@ -68,7 +60,7 @@ public class MainActivity extends FragmentActivity implements
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -139,7 +131,7 @@ public class MainActivity extends FragmentActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NotNull MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -163,7 +155,7 @@ public class MainActivity extends FragmentActivity implements
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(DOOR_COUNT_KEY, garageDoorCount);
     }
@@ -176,14 +168,17 @@ public class MainActivity extends FragmentActivity implements
      */
     public void onSectionAttached(String title) {
         mTitle = title;
-        getActionBar().setTitle(mTitle);
+        if (getActionBar() != null)
+            getActionBar().setTitle(mTitle);
     }
 
     public void restoreActionBar() {
         ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
+        if (actionBar != null) {
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setTitle(mTitle);
+        }
     }
 
     public BackgroundFragment getBackgroundFragment() {
@@ -230,7 +225,7 @@ public class MainActivity extends FragmentActivity implements
 
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        Fragment fragment = null;
+        Fragment fragment;
         String tag = null;
 
         switch (position) {
@@ -277,6 +272,7 @@ public class MainActivity extends FragmentActivity implements
      *
      * @return  A list of titles that should be displayed in the navigation drawer
      */
+    @NotNull
     @Override
     public List<String> arrayAdapterTitles() {
         ArrayList<String> titles = new ArrayList<String>();

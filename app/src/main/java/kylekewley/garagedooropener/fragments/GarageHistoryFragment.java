@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.jetbrains.annotations.NotNull;
+
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 
@@ -27,6 +29,7 @@ public class GarageHistoryFragment extends Fragment {
      *
      * @return A new instance of fragment GarageHistoryFragment.
      */
+    @NotNull
     public static GarageHistoryFragment newInstance() {
         GarageHistoryFragment fragment = new GarageHistoryFragment();
         Log.d(GARAGE_HISTORY_TAG, "Creating new instance");
@@ -46,14 +49,14 @@ public class GarageHistoryFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_garage_history, container, false);
     }
 
     @Override
-    public void onAttach(Activity activity) {
+    public void onAttach(@NotNull Activity activity) {
         super.onAttach(activity);
 
         ((MainActivity)activity).onSectionAttached(getString(R.string.title_garage_history));

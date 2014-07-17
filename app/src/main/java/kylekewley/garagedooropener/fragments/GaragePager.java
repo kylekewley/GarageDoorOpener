@@ -1,10 +1,8 @@
 package kylekewley.garagedooropener.fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -14,7 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.GarageOpenerView;
@@ -36,7 +35,7 @@ public class GaragePager extends Fragment implements
     private static final String ARG_NUM_DOORS = "num_doors";
 
 
-    public static final String GARAGE_PAGER_TAG = "garage_pager";
+    private static final String GARAGE_PAGER_TAG = "garage_pager";
 
     /**
      * The total number of garage doors to display
@@ -70,6 +69,7 @@ public class GaragePager extends Fragment implements
     private GarageOpenerClient garageOpenerClient;
 
 
+    @NotNull
     public static GaragePager newInstance(int numDoors) {
         GaragePager fragment = new GaragePager();
 
@@ -87,7 +87,7 @@ public class GaragePager extends Fragment implements
 
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity()
@@ -103,8 +103,9 @@ public class GaragePager extends Fragment implements
 
 
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         garageOpenerClient = ((MainActivity)getActivity()).getBackgroundFragment().getGarageOpenerClient();
@@ -148,7 +149,7 @@ public class GaragePager extends Fragment implements
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(ARG_NUM_DOORS, numDoors);
     }
@@ -256,6 +257,7 @@ public class GaragePager extends Fragment implements
             super(fm);
         }
 
+        @NotNull
         @Override
         public Fragment getItem(int position) {
             boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;

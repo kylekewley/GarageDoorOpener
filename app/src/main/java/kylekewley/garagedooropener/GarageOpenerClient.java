@@ -1,12 +1,6 @@
 package kylekewley.garagedooropener;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
-
-import kylekewley.garagedooropener.Constants.ServerParserId;
-import kylekewley.garagedooropener.Constants.ClientParserId;
 
 import com.kylekewley.piclient.CustomBufferParser;
 import com.kylekewley.piclient.PiClient;
@@ -15,10 +9,12 @@ import com.kylekewley.piclient.PiMessageCallbacks;
 import com.kylekewley.piclient.protocolbuffers.ParseError;
 import com.squareup.wire.Message;
 
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import kylekewley.garagedooropener.fragments.GarageOpenerFragment;
+import kylekewley.garagedooropener.Constants.ClientParserId;
+import kylekewley.garagedooropener.Constants.ServerParserId;
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
@@ -56,7 +52,8 @@ public class GarageOpenerClient {
     /**
      * The client that will be used for sending and receiving messages
      */
-    private PiClient client;
+    @NotNull
+    private final PiClient client;
 
 
     /**
@@ -72,7 +69,7 @@ public class GarageOpenerClient {
      * Default parameters that are shared between all constructors.
      * This MUST be called by all constructors for the class to work properly.
      */
-    private void sharedConstructor(PiClient client) {
+    private void sharedConstructor(@NotNull PiClient client) {
         boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
                 ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
         garageDoors = new GarageDoor[0];
@@ -92,7 +89,7 @@ public class GarageOpenerClient {
      *
      * @param client The client that will be used for sending and receiving messages.
      */
-    public GarageOpenerClient(PiClient client) {
+    public GarageOpenerClient(@NotNull PiClient client) {
         sharedConstructor(client);
         this.client = client;
 
@@ -108,7 +105,7 @@ public class GarageOpenerClient {
      *                  these doors will have IDs of 0...numDoors-1.
      * @param client    The client that will be used for sending and receiving messages.
      */
-    public GarageOpenerClient(int numDoors, PiClient client) {
+    public GarageOpenerClient(int numDoors, @NotNull PiClient client) {
         sharedConstructor(client);
         this.client = client;
         initializeDoorArray(numDoors);
@@ -202,9 +199,7 @@ public class GarageOpenerClient {
     }
 
     public int getDoorCount() {
-        synchronized (garageDoors) {
-            return garageDoors.length;
-        }
+        return garageDoors.length;
     }
 
     public boolean triggerDoor(int doorIndex) {
@@ -227,7 +222,7 @@ public class GarageOpenerClient {
      *      lastStatusChange = -1
      *      doorStatus = DOOR_NOT_CLOSED
      *
-     * @param numDoors
+     * @param numDoors  The number of doors to initialize.
      */
     private void initializeDoorArray(int numDoors) {
         garageDoors = new GarageDoor[numDoors];
@@ -250,10 +245,8 @@ public class GarageOpenerClient {
                 @Override
                 public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
                     GarageStatus status = (GarageStatus)response;
-                    synchronized (garageDoors) {
-                        parseDoorStatusList(status.doors);
-                        updateInterfaceChanges();
-                    }
+                    parseDoorStatusList(status.doors);
+                    updateInterfaceChanges();
                 }
                 @Override
                 public void serverSuccessfullyParsedMessage(PiMessage message) {
@@ -286,7 +279,7 @@ public class GarageOpenerClient {
      * Parse the full list of DoorStatus objects and update the array.
      * Currently, the list must include every garage door.
      */
-    private void parseDoorStatusList(List<GarageStatus.DoorStatus> doorStatusList) {
+    private void parseDoorStatusList(@NotNull List<GarageStatus.DoorStatus> doorStatusList) {
         initializeDoorArray(doorStatusList.size());
         for (GarageStatus.DoorStatus status : doorStatusList) {
             int index = status.garageId;
@@ -336,7 +329,7 @@ public class GarageOpenerClient {
        /**
         * The ID of the garage door.
         */
-       public int doorId;
+       public final int doorId;
 
 
        /**
@@ -367,7 +360,7 @@ public class GarageOpenerClient {
     private class OpenerParser extends CustomBufferParser<GarageStatus> {
 
         @Override
-        public void parse(GarageStatus message) {
+        public void parse(@NotNull GarageStatus message) {
             parseDoorStatusList(message.doors);
             updateInterfaceChanges();
         }
