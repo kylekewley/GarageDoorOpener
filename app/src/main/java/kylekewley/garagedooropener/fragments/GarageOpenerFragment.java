@@ -5,10 +5,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
 
+import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 
 /**
@@ -74,6 +76,20 @@ public class GarageOpenerFragment extends Fragment {
 
         if (textView != null) {
             textView.setText(Integer.toString(garageId));
+        }
+
+        Button b = (Button)view.findViewById(R.id.open_button);
+
+        if (b != null) {
+            b.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MainActivity activity = (MainActivity)getActivity();
+                    if (activity != null) {
+                        activity.getBackgroundFragment().getGarageOpenerClient().triggerDoor(garageId);
+                    }
+                }
+            });
         }
 
         return view;

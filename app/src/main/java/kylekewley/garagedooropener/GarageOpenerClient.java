@@ -15,6 +15,7 @@ import java.util.List;
 
 import kylekewley.garagedooropener.Constants.ClientParserId;
 import kylekewley.garagedooropener.Constants.ServerParserId;
+import kylekewley.garagedooropener.protocolbuffers.GarageCommand;
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
@@ -203,13 +204,35 @@ public class GarageOpenerClient {
     }
 
     public boolean triggerDoor(int doorIndex) {
-        if (doorIndex < getDoorCount() && client != null) {
-            //TODO: Code to send a trigger message.
-            Log.d(TAG, "Trigger garage door: " + doorIndex);
-            return true;
-        }
+        GarageCommand command = new GarageCommand(GarageCommand.Command.TRIGGER_DOOR, doorIndex);
+        PiMessage message = new PiMessage(ServerParserId.GARAGE_OPENER_ID.getId(), command);
 
-        return false;
+        message.setMessageCallbacks(new PiMessageCallbacks() {
+            @Override
+            public void serverReturnedData(byte[] data, PiMessage message) {
+
+            }
+
+            @Override
+            public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
+
+            }
+
+            @Override
+            public void serverSuccessfullyParsedMessage(PiMessage message) {
+                Log.d(TAG, "Successfully parsed message");
+            }
+
+            @Override
+            public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
+
+            }
+        });
+
+        Log.d(TAG, "Trigger garage door: " + doorIndex);
+        client.sendMessage(message);
+        return true;
+
     }
 
     /*
