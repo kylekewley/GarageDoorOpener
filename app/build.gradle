@@ -24,4 +24,5 @@ dependencies {
     compile project(':PiClientAndroid')
     compile files('libs/android-support-v4.jar')
     compile files('libs/wire-compiler-1.5.1-jar-with-dependencies.jar')
+    compile files('libs/annotations.jar')
 }
