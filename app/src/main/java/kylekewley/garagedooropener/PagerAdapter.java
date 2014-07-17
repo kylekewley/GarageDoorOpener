@@ -21,6 +21,7 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
+
         return GarageOpenerFragment.newInstance(position + 1);
     }
 

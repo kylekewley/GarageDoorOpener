@@ -66,6 +66,7 @@ public class MainActivity extends FragmentActivity implements
     private int garageDoorCount = 0;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -149,7 +150,15 @@ public class MainActivity extends FragmentActivity implements
             startActivityForResult(i, SETTINGS_RESULT);
 
             return true;
+        }else if (id == R.id.action_reconnect) {
+            //Refresh the connection
+            if (backgroundFragment != null) {
+                backgroundFragment.connectToServer();
+            }
+
+            return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -175,6 +184,10 @@ public class MainActivity extends FragmentActivity implements
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
+    }
+
+    public BackgroundFragment getBackgroundFragment() {
+        return backgroundFragment;
     }
 
 

@@ -1,5 +1,8 @@
 package kylekewley.garagedooropener;
 
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.util.Log;
 
 import kylekewley.garagedooropener.Constants.ServerParserId;
@@ -15,6 +18,7 @@ import com.squareup.wire.Message;
 
 import java.util.List;
 
+import kylekewley.garagedooropener.fragments.GarageOpenerFragment;
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
@@ -64,7 +68,6 @@ public class GarageOpenerClient {
 
     private GarageOpenerView openerView;
 
-
     /**
      * Default parameters that are shared between all constructors.
      * This MUST be called by all constructors for the class to work properly.
@@ -79,6 +82,7 @@ public class GarageOpenerClient {
                     " because the id is already used. The door status will not be updated. " +
                     "Please use a unique id for each parser.");
         }
+
     }
     
     /**
@@ -375,4 +379,6 @@ public class GarageOpenerClient {
             updateInterfaceChanges();
         }
     }
+
+
 }

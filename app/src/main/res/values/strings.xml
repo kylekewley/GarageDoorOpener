@@ -2,13 +2,19 @@
 <resources>
 
     <string name="app_name">Garage Door Opener</string>
+
     <string name="title_garage_overview">Overview</string>
     <string name="title_garage_opener">Door</string>
     <string name="title_garage_history">History</string>
+
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+
     <string name="action_example">Example action</string>
+
     <string name="action_settings">Settings</string>
+    <string name="action_reconnect">Reconnect</string>
+
     <string name="status_string">Status:</string>
     <string name="status_connected">Connected to server.</string>
     <string name="status_trying">Trying to connect.</string>

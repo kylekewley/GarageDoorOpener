@@ -1,9 +1,12 @@
 package kylekewley.garagedooropener.fragments;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,7 +20,6 @@ import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.GarageOpenerView;
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
-import kylekewley.garagedooropener.PagerAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -84,7 +86,6 @@ public class GaragePager extends Fragment implements
     }
 
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,7 +99,6 @@ public class GaragePager extends Fragment implements
         if (savedInstanceState != null) {
             numDoors = savedInstanceState.getInt(ARG_NUM_DOORS);
         }
-
     }
 
 
@@ -106,6 +106,9 @@ public class GaragePager extends Fragment implements
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        garageOpenerClient = ((MainActivity)getActivity()).getBackgroundFragment().getGarageOpenerClient();
+
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
@@ -116,7 +119,7 @@ public class GaragePager extends Fragment implements
 
         if (mPager == null) return v;
 
-        mPagerAdapter = new PagerAdapter(getChildFragmentManager(), numDoors);
+        mPagerAdapter = new PagerAdapter(getChildFragmentManager());
 
         mPager.setAdapter(mPagerAdapter);
 
@@ -180,10 +183,6 @@ public class GaragePager extends Fragment implements
         this.garageOpenerClient = openerClient;
     }
 
-    public GarageOpenerClient getGarageOpenerClient() {
-        return garageOpenerClient;
-    }
-
     @Override
     public void updateGarageView(final int index, final GarageOpenerClient.DoorPosition status) {
         //TODO: Implement method when we get garage pictures.
@@ -192,7 +191,12 @@ public class GaragePager extends Fragment implements
             @Override
             public void run() {
                 //TODO: Make sure we're getting the right fragment
-                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager().getFragments().get(index);
+                if (getChildFragmentManager() == null ||
+                        getChildFragmentManager().getFragments() == null) return;
+
+                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager()
+                        .getFragments().get(index);
+
                 if (f != null) {
                     TextView textView = f.getTextView();
 
@@ -217,7 +221,6 @@ public class GaragePager extends Fragment implements
 
         this.numDoors = garageDoorCount;
         if (mPagerAdapter != null) {
-            mPagerAdapter.setDoorCount(garageDoorCount);
             mPagerAdapter.notifyDataSetChanged();
 
             if (!initialized) {
@@ -226,6 +229,32 @@ public class GaragePager extends Fragment implements
         }
 
         initialized = true;
+    }
+
+
+
+    public class PagerAdapter extends FragmentStatePagerAdapter {
+
+        public PagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;
+            return GarageOpenerFragment.newInstance(closed ? 1 : 0);
+        }
+
+        @Override
+        public int getCount() {
+            if (garageOpenerClient == null) return 0;
+            return garageOpenerClient.getDoorCount();
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            return POSITION_NONE;
+        }
     }
 
 }
