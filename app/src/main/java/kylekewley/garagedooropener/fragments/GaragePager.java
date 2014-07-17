@@ -218,6 +218,7 @@ public class GaragePager extends Fragment implements
         this.numDoors = garageDoorCount;
         if (mPagerAdapter != null) {
             mPagerAdapter.setDoorCount(garageDoorCount);
+            mPagerAdapter.notifyDataSetChanged();
 
             if (!initialized) {
                 mPager.setCurrentItem(currentDoor);

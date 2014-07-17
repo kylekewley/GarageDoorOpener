@@ -91,6 +91,9 @@ public class GarageOpenerClient {
     public GarageOpenerClient(PiClient client) {
         sharedConstructor(client);
         this.client = client;
+
+        //Need to update garage door data
+        requestGarageDoorStatus();
     }
 
 
@@ -103,8 +106,9 @@ public class GarageOpenerClient {
      */
     public GarageOpenerClient(int numDoors, PiClient client) {
         sharedConstructor(client);
-        initializeDoorArray(numDoors);
         this.client = client;
+        initializeDoorArray(numDoors);
+        requestGarageDoorStatus();
     }
 
     /*
@@ -233,7 +237,9 @@ public class GarageOpenerClient {
         for (int i = 0; i < numDoors; i++) {
             garageDoors[i] = new GarageDoor(i, -1, DoorPosition.DOOR_NOT_CLOSED);
         }
+    }
 
+    private void requestGarageDoorStatus() {
         if (client != null) {
             PiMessage statusRequest = new PiMessage(ServerParserId.GARAGE_STATUS_ID.getId());
 
@@ -277,9 +283,14 @@ public class GarageOpenerClient {
     }
 
     /**
-     * Parse the full list of DoorStatus objects and update the array
+     * Parse the full list of DoorStatus objects and update the array.
+     * Currently, the list must include every garage door.
      */
     private void parseDoorStatusList(List<GarageStatus.DoorStatus> doorStatusList) {
+        if (getDoorCount() != doorStatusList.size()) {
+            //Need to resize the array
+            setGarageDoorCount(doorStatusList.size());
+        }
         for (GarageStatus.DoorStatus status : doorStatusList) {
             int index = status.garageId;
             boolean closed = status.isClosed;

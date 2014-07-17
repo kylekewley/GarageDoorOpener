@@ -106,6 +106,14 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (backgroundFragment != null && backgroundFragment.hasEnteredBackground()) {
+                backgroundFragment.setEnteredBackground(false);
+                backgroundFragment.connectToServer();
+        }
+    }
 
     @Override
     protected void onStop() {

@@ -28,11 +28,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
 
     private PiClient piClient;
 
-    private boolean enteredBackground = false;
-
-    private boolean initialized;
-
-    private int garageDoorCount;
+    private boolean enteredBackground = true;
 
     private Activity activity;
     /**
@@ -42,10 +38,8 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
 
 
     public BackgroundFragment() {
-        garageDoorCount = 0;
         piClient = new PiClient(this);
         garageOpenerClient = new GarageOpenerClient(piClient);
-        initialized = false;
     }
 
 
@@ -60,17 +54,6 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-        if (initialized == false) {
-            initialized = true;
-            connectToServer();
-        }else if (enteredBackground) {
-            enteredBackground = false;
-            if (!piClient.isConnected()) {
-                connectToServer();
-            }
-        }
-
     }
 
 
@@ -108,21 +91,6 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     public void setEnteredBackground(boolean enteredBackground) {
         this.enteredBackground = enteredBackground;
     }
-
-
-    /**
-     * @return The number of garage doors connected to the PiServer.
-     */
-    public int getGarageDoorCount() {
-        return garageDoorCount;
-    }
-
-    public void setGarageDoorCount(int garageDoorCount) {
-        this.garageDoorCount = garageDoorCount;
-        //Update the client and view
-        garageOpenerClient.setGarageDoorCount(garageDoorCount);
-    }
-
 
     /**
      * @return  The garageOpenerClient object in charge of updating the opener view.
@@ -166,48 +134,7 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
         }
 
         piClient.connectToPiServer(getHostName(), getPortNumber());
-        requestGarageMetaData();
     }
-
-    private void requestGarageMetaData() {
-        final int metaRequestId = Constants.ServerParserId.GARAGE_META_ID.getId();
-
-        //Create an empty message with the metaRequestId
-        PiMessage metaRequest = new PiMessage(metaRequestId);
-
-        metaRequest.setMessageCallbacks(new PiMessageCallbacks(GarageMetaData.class) {
-            @Override
-            public void serverReturnedData(byte[] data, PiMessage message) {
-
-            }
-
-            @Override
-            public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
-                final GarageMetaData metaData = (GarageMetaData)response;
-
-
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        setGarageDoorCount(metaData.doorCount);
-                    }
-                });
-            }
-
-            @Override
-            public void serverSuccessfullyParsedMessage(PiMessage message) {
-
-            }
-
-            @Override
-            public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
-
-            }
-        });
-
-        piClient.sendMessage(metaRequest);
-    }
-
 
         /*
     PiClient Callbacks class
