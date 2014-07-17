@@ -302,6 +302,8 @@ public class GarageOpenerClient {
     }
 
     private void updateInterfaceChanges() {
+        if (openerView == null) return;
+
         openerView.setGarageDoorCount(getDoorCount());
 
         for (int i = 0; i < getDoorCount(); i++) {

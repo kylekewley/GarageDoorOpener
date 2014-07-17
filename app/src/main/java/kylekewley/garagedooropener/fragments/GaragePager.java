@@ -109,7 +109,7 @@ public class GaragePager extends Fragment implements
                              Bundle savedInstanceState) {
 
         garageOpenerClient = ((MainActivity)getActivity()).getBackgroundFragment().getGarageOpenerClient();
-
+        numDoors = garageOpenerClient.getNumberOfGarageDoors();
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
