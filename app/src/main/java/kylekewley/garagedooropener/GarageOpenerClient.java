@@ -202,14 +202,8 @@ public class GarageOpenerClient {
     }
 
     public int getDoorCount() {
-        return garageDoors.length;
-    }
-
-    public void setGarageDoorCount(int count) {
-        initializeDoorArray(count);
-
-        if (openerView != null) {
-            openerView.setGarageDoorCount(count);
+        synchronized (garageDoors) {
+            return garageDoors.length;
         }
     }
 
@@ -256,8 +250,10 @@ public class GarageOpenerClient {
                 @Override
                 public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
                     GarageStatus status = (GarageStatus)response;
-                    parseDoorStatusList(status.doors);
-                    updateInterfaceChanges();
+                    synchronized (garageDoors) {
+                        parseDoorStatusList(status.doors);
+                        updateInterfaceChanges();
+                    }
                 }
                 @Override
                 public void serverSuccessfullyParsedMessage(PiMessage message) {
@@ -291,10 +287,7 @@ public class GarageOpenerClient {
      * Currently, the list must include every garage door.
      */
     private void parseDoorStatusList(List<GarageStatus.DoorStatus> doorStatusList) {
-        if (getDoorCount() != doorStatusList.size()) {
-            //Need to resize the array
-            setGarageDoorCount(doorStatusList.size());
-        }
+        initializeDoorArray(doorStatusList.size());
         for (GarageStatus.DoorStatus status : doorStatusList) {
             int index = status.garageId;
             boolean closed = status.isClosed;

@@ -1,16 +1,26 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="kylekewley.garagedooropener.fragments.GarageOpenerFragment">
+    tools:context="kylekewley.garagedooropener.fragments.GarageOpenerFragment"
+    android:orientation="vertical"
+    android:id="@+id/linear_layout">
 
     <!-- TODO: Update blank fragment layout -->
+
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/page_number_text"
         android:textStyle="bold"
         android:textSize="24sp"
         android:textIsSelectable="false" />
 
-</FrameLayout>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/open_button"
+        android:text="Open Door"
+        android:layout_gravity="left|top" />
+
+</LinearLayout>

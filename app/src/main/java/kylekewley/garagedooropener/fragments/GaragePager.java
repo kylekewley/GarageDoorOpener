@@ -112,7 +112,7 @@ public class GaragePager extends Fragment implements
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
-        if (v == null) return v;
+        if (v == null) return null;
 
         // Instantiate a ViewPager and a PagerAdapter.
         mPager = (ViewPager)v.findViewById(R.id.view_pager);
@@ -215,20 +215,37 @@ public class GaragePager extends Fragment implements
         });
     }
 
+    private void setNumDoors(int numDoors) {
+        this.numDoors = numDoors;
+    }
+
     @Override
-    public void setGarageDoorCount(int garageDoorCount) {
-        if (numDoors == garageDoorCount) return;
-
-        this.numDoors = garageDoorCount;
-        if (mPagerAdapter != null) {
-            mPagerAdapter.notifyDataSetChanged();
-
-            if (!initialized) {
-                mPager.setCurrentItem(currentDoor);
-            }
+    public void setGarageDoorCount(final int garageDoorCount) {
+        if (getActivity() == null) {
+            //Not yet attached. We will be updated then.
+            return;
         }
 
-        initialized = true;
+        //Don't bother updating to the same value
+        if (numDoors == garageDoorCount) return;
+
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setNumDoors(garageDoorCount);
+
+                if (mPagerAdapter != null) {
+                    mPagerAdapter.notifyDataSetChanged();
+
+                    if (!initialized) {
+                        mPager.setCurrentItem(currentDoor);
+                    }
+                }
+
+                initialized = true;
+            }
+        });
     }
 
 
@@ -248,7 +265,7 @@ public class GaragePager extends Fragment implements
         @Override
         public int getCount() {
             if (garageOpenerClient == null) return 0;
-            return garageOpenerClient.getDoorCount();
+            return numDoors;
         }
 
         @Override
