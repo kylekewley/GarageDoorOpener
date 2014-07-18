@@ -7,6 +7,8 @@ package kylekewley.garagedooropener;
  */
 public final class Constants {
 
+    public static final String GARAGE_GROUP_ID = "garage";
+
     public enum ServerParserId {
         GARAGE_META_ID(1000),       //Used to get information about the system such as the number
                                     //of garage doors.

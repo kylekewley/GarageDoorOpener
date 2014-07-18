@@ -41,6 +41,8 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         piClient = new PiClient(this);
         garageOpenerClient = new GarageOpenerClient(piClient);
         garageHistoryClient = new GarageHistoryClient(piClient);
+
+        piClient.addToGroup(Constants.GARAGE_GROUP_ID);
     }
 
 
