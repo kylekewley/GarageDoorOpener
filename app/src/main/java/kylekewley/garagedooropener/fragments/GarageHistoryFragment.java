@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import kylekewley.garagedooropener.DoorStatusChange;
 import kylekewley.garagedooropener.GarageHistoryClient;
 import kylekewley.garagedooropener.GarageHistoryView;
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
+import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -104,18 +104,6 @@ public class GarageHistoryFragment extends Fragment implements
         });
     }
 
-    @Override
-    public void setDataSet(final ArrayList<DoorStatusChange> statusChanges) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mListView != null && mAdapter != null) {
-                    mAdapter = new DoorArrayAdapter(getActivity(), statusChanges);
-                    mListView.setAdapter(mAdapter);
-                }
-            }
-        });
-    }
 
     public void clearDataSet() {
         getActivity().runOnUiThread(new Runnable() {
@@ -129,7 +117,7 @@ public class GarageHistoryFragment extends Fragment implements
         });
     }
 
-    public void addToDataSet(final Collection<DoorStatusChange> collection) {
+    public void addToDataSet(final Collection<GarageStatus.DoorStatus> collection) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -141,7 +129,7 @@ public class GarageHistoryFragment extends Fragment implements
         });
     }
 
-    public void addToDataSet(final DoorStatusChange item) {
+    public void addToDataSet(final GarageStatus.DoorStatus item) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -154,17 +142,17 @@ public class GarageHistoryFragment extends Fragment implements
     }
 
 
-    private class DoorArrayAdapter extends ArrayAdapter<DoorStatusChange> {
+    private class DoorArrayAdapter extends ArrayAdapter<GarageStatus.DoorStatus> {
         public DoorArrayAdapter(Context context) {
             super(context, R.layout.history_list_item);
         }
-        public DoorArrayAdapter(Context context, ArrayList<DoorStatusChange> statusList) {
+        public DoorArrayAdapter(Context context, ArrayList<GarageStatus.DoorStatus> statusList) {
             super(context, R.layout.history_list_item, statusList);
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            DoorStatusChange change = getItem(position);
+            GarageStatus.DoorStatus change = getItem(position);
             // Check if an existing view is being reused, otherwise inflate the view
             if (convertView == null) {
                 convertView = LayoutInflater.from(getContext()).inflate(R.layout.history_list_item, parent, false);
@@ -173,8 +161,8 @@ public class GarageHistoryFragment extends Fragment implements
             TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
             TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
             // Populate the data into the template view using the data object
-            tvName.setText(Integer.toString(change.doorId));
-            tvHome.setText(Long.toString(change.changeTime));
+            tvName.setText(Integer.toString(change.garageId));
+            tvHome.setText(Long.toString(change.timestamp));
             // Return the completed view to render on screen
             return convertView;
 
