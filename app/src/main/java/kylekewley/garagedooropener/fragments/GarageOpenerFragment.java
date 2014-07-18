@@ -60,7 +60,6 @@ public class GarageOpenerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments() != null) {
             garageId = getArguments().getInt(ARG_GARAGE_ID);
         }
@@ -86,7 +85,7 @@ public class GarageOpenerFragment extends Fragment {
                 public void onClick(View v) {
                     MainActivity activity = (MainActivity)getActivity();
                     if (activity != null) {
-                        activity.getBackgroundFragment().getGarageOpenerClient().triggerDoor(garageId);
+                        activity.getDataFragment().getGarageOpenerClient().triggerDoor(garageId);
                     }
                 }
             });

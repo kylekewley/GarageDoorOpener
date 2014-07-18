@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
  * Created by Kyle Kewley on 7/14/14.
  *
  */
-public class BackgroundFragment extends Fragment implements PiClientCallbacks {
+public class DataFragment extends Fragment implements PiClientCallbacks {
 
     @NotNull
     private final PiClient piClient;
@@ -27,16 +27,20 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     private boolean enteredBackground = true;
 
     private Activity activity;
+
     /**
      * Used as a back end for the GaragePager fragment
      */
     @NotNull
     final GarageOpenerClient garageOpenerClient;
 
+    @NotNull
+    final GarageHistoryClient garageHistoryClient;
 
-    public BackgroundFragment() {
+    public DataFragment() {
         piClient = new PiClient(this);
         garageOpenerClient = new GarageOpenerClient(piClient);
+        garageHistoryClient = new GarageHistoryClient(piClient);
     }
 
 
@@ -99,11 +103,20 @@ public class BackgroundFragment extends Fragment implements PiClientCallbacks {
     }
 
     public void setGarageOpenerView(GarageOpenerView garageOpenerView) {
-        if (garageOpenerClient != null) {
-            garageOpenerClient.setOpenerView(garageOpenerView);
-        }
+        garageOpenerClient.setOpenerView(garageOpenerView);
     }
 
+    /**
+     * @return  The garageHistoryClient object in charge of updating the history view.
+     */
+    @NotNull
+    public GarageHistoryClient getGarageHistoryClient() {
+        return garageHistoryClient;
+    }
+
+    public void setGarageHistoryView(GarageHistoryView garageHistoryView) {
+        garageHistoryClient.setHistoryView(garageHistoryView);
+    }
     /*
     Creating a connection.
      */

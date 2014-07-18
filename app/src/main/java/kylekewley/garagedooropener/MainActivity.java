@@ -46,7 +46,7 @@ public class MainActivity extends FragmentActivity implements
     /**
      * Used to store the PiClient object
      */
-    private BackgroundFragment backgroundFragment;
+    private DataFragment dataFragment;
 
 
     /**
@@ -89,22 +89,22 @@ public class MainActivity extends FragmentActivity implements
         android.app.FragmentManager manager = getFragmentManager();
 
         // find the retained fragment on activity restarts
-        backgroundFragment = (BackgroundFragment)manager.findFragmentByTag(backgroundFragmentTag);
+        dataFragment = (DataFragment)manager.findFragmentByTag(backgroundFragmentTag);
 
 
-        if (backgroundFragment == null) {
-            backgroundFragment = new BackgroundFragment();
+        if (dataFragment == null) {
+            dataFragment = new DataFragment();
 
-            manager.beginTransaction().add(backgroundFragment, backgroundFragmentTag).commit();
+            manager.beginTransaction().add(dataFragment, backgroundFragmentTag).commit();
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (backgroundFragment != null && backgroundFragment.hasEnteredBackground()) {
-                backgroundFragment.setEnteredBackground(false);
-                backgroundFragment.connectToServer();
+        if (dataFragment != null && dataFragment.hasEnteredBackground()) {
+                dataFragment.setEnteredBackground(false);
+                dataFragment.connectToServer();
         }
     }
 
@@ -112,8 +112,8 @@ public class MainActivity extends FragmentActivity implements
     protected void onStop() {
         super.onStop();
         if (isApplicationBroughtToBackground()) {
-            backgroundFragment.getPiClient().close();
-            backgroundFragment.setEnteredBackground(true);
+            dataFragment.getPiClient().close();
+            dataFragment.setEnteredBackground(true);
         }
     }
 
@@ -144,8 +144,8 @@ public class MainActivity extends FragmentActivity implements
             return true;
         }else if (id == R.id.action_reconnect) {
             //Refresh the connection
-            if (backgroundFragment != null) {
-                backgroundFragment.connectToServer();
+            if (dataFragment != null) {
+                dataFragment.connectToServer();
             }
 
             return true;
@@ -181,8 +181,8 @@ public class MainActivity extends FragmentActivity implements
         }
     }
 
-    public BackgroundFragment getBackgroundFragment() {
-        return backgroundFragment;
+    public DataFragment getDataFragment() {
+        return dataFragment;
     }
 
 
@@ -243,10 +243,11 @@ public class MainActivity extends FragmentActivity implements
             switch (position) {
                 case 0:
                     fragment = GaragePager.newInstance(garageDoorCount);
-                    backgroundFragment.setGarageOpenerView((GaragePager)fragment);
+                    dataFragment.setGarageOpenerView((GaragePager)fragment);
                     break;
                 case 1:
                     fragment = GarageHistoryFragment.newInstance();
+                    dataFragment.setGarageHistoryView((GarageHistoryFragment)fragment);
                     break;
             }
         }
