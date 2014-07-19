@@ -42,7 +42,6 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         garageOpenerClient = new GarageOpenerClient(piClient);
         garageHistoryClient = new GarageHistoryClient(piClient);
 
-        piClient.addToGroup(Constants.GARAGE_GROUP_ID);
     }
 
 
@@ -147,6 +146,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
             piClient.close();
         }
 
+        piClient.addToGroup(Constants.GARAGE_GROUP_ID);
         piClient.connectToPiServer(getHostName(), getPortNumber());
     }
 
