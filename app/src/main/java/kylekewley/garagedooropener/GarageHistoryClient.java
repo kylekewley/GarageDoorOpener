@@ -1,5 +1,7 @@
 package kylekewley.garagedooropener;
 
+import android.util.Log;
+
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiMessage;
 import com.kylekewley.piclient.PiMessageCallbacks;
@@ -43,6 +45,8 @@ public class GarageHistoryClient {
      */
     GarageHistoryClient(@NotNull PiClient piClient) {
         this.client = piClient;
+        Log.d("History", "Requesting history");
+        requestGarageHistory((int)(System.currentTimeMillis()/1000-60*60*24), 60*60*24);
     }
 
     /*
@@ -66,7 +70,7 @@ public class GarageHistoryClient {
     Getting data
      */
     private void requestGarageHistory(int startTime, int interval) {
-        final GarageHistoryRequest historyRequest = new GarageHistoryRequest(startTime, interval);
+        GarageHistoryRequest historyRequest = new GarageHistoryRequest(startTime, interval);
         PiMessage message = new PiMessage(Constants.ServerParserId.GARAGE_HISTORY_ID.getId(), historyRequest);
 
         message.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
