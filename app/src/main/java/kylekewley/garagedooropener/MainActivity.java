@@ -242,7 +242,7 @@ public class MainActivity extends FragmentActivity implements
         if (fragment == null) {
             switch (position) {
                 case 0:
-                    fragment = GaragePager.newInstance(garageDoorCount);
+                    fragment = GaragePager.newInstance();
                     break;
                 case 1:
                     fragment = GarageHistoryFragment.newInstance();

@@ -38,11 +38,6 @@ public class GaragePager extends Fragment implements
     private static final String GARAGE_PAGER_TAG = "garage_pager";
 
     /**
-     * The total number of garage doors to display
-     */
-    private volatile int numDoors;
-
-    /**
      * The currentDoor being viewed
      */
     private int currentDoor;
@@ -66,17 +61,13 @@ public class GaragePager extends Fragment implements
     /**
      * Is set to true the first time setNumDoors() is called.
      */
-    private boolean initialized;
+    private boolean initialized = false;
 
 
     @NotNull
-    public static GaragePager newInstance(int numDoors) {
+    public static GaragePager newInstance() {
         GaragePager fragment = new GaragePager();
 
-        Bundle args = new Bundle();
-        args.putInt(ARG_NUM_DOORS, numDoors);
-
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -93,12 +84,6 @@ public class GaragePager extends Fragment implements
         currentDoor = PreferenceManager.getDefaultSharedPreferences(getActivity()
                 .getApplicationContext()).getInt(getString(R.string.pref_selected_door), 0);
 
-        if (getArguments() != null && !initialized) {
-            numDoors = getArguments().getInt(ARG_NUM_DOORS);
-        }
-        if (savedInstanceState != null) {
-            numDoors = savedInstanceState.getInt(ARG_NUM_DOORS);
-        }
     }
 
 
@@ -139,6 +124,7 @@ public class GaragePager extends Fragment implements
         return v;
     }
 
+
     @Override
     public void onStart() {
         super.onStart();
@@ -157,7 +143,6 @@ public class GaragePager extends Fragment implements
     @Override
     public void onSaveInstanceState(@NotNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(ARG_NUM_DOORS, numDoors);
     }
 
 
@@ -216,12 +201,6 @@ public class GaragePager extends Fragment implements
 //        });
 //    }
 
-    private void setNumDoors(int numDoors) {
-        this.numDoors = numDoors;
-    }
-
-
-
     public class PagerAdapter extends FragmentStatePagerAdapter {
 
         public PagerAdapter(FragmentManager fm) {
@@ -243,6 +222,15 @@ public class GaragePager extends Fragment implements
         @Override
         public int getItemPosition(Object object) {
             return POSITION_NONE;
+        }
+
+        @Override
+        public void notifyDataSetChanged() {
+            super.notifyDataSetChanged();
+
+            if (!initialized) {
+                mPager.setCurrentItem(currentDoor, false);
+            }
         }
     }
 
