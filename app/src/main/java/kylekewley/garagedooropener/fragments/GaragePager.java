@@ -54,6 +54,11 @@ public class GaragePager extends Fragment implements
     private ViewPager mPager;
 
     /**
+     * The class that will handle data updates
+     */
+    private GarageOpenerClient garageOpenerClient;
+
+    /**
      * The pager adapter, which provides the pages to the view pager widget.
      */
     private PagerAdapter mPagerAdapter;
@@ -62,11 +67,6 @@ public class GaragePager extends Fragment implements
      * Is set to true the first time setNumDoors() is called.
      */
     private boolean initialized;
-
-    /**
-     * The object used to send server requests
-     */
-    private GarageOpenerClient garageOpenerClient;
 
 
     @NotNull
@@ -108,27 +108,26 @@ public class GaragePager extends Fragment implements
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        garageOpenerClient = ((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient();
-        numDoors = garageOpenerClient.getNumberOfGarageDoors();
-        // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
         if (v == null) return null;
 
-        // Instantiate a ViewPager and a PagerAdapter.
         mPager = (ViewPager)v.findViewById(R.id.view_pager);
 
         if (mPager == null) return v;
 
         mPagerAdapter = new PagerAdapter(getChildFragmentManager());
+        garageOpenerClient = ((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient();
+        garageOpenerClient.setViewPager(mPager);
+        garageOpenerClient.setOpenerView(this);
 
         mPager.setAdapter(mPagerAdapter);
-
         mPager.setOnPageChangeListener(this);
+
 
         //Set the current door if it is valid. This is used for when the activity is recreated after
         //switching from the history tab back to the opener tab.
-        if (currentDoor < numDoors)
+        if (currentDoor < garageOpenerClient.getNumberOfGarageDoors())
             mPager.setCurrentItem(currentDoor, false);
 
         mPager.setClipChildren(false);
@@ -146,6 +145,13 @@ public class GaragePager extends Fragment implements
         updateActionBarTitle();
         if (garageOpenerClient == null)
             Log.d(GARAGE_PAGER_TAG, "Garage opener client null");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        garageOpenerClient.setOpenerView(null);
+
     }
 
     @Override
@@ -179,74 +185,39 @@ public class GaragePager extends Fragment implements
 
     }
 
-    @Override
-    public void setGarageOpenerClient(GarageOpenerClient openerClient) {
-        this.garageOpenerClient = openerClient;
-    }
-
-    @Override
-    public void updateGarageView(final int index, final GarageOpenerClient.DoorPosition status) {
-        //TODO: Implement method when we get garage pictures.
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                //TODO: Make sure we're getting the right fragment
-                if (getChildFragmentManager() == null ||
-                        getChildFragmentManager().getFragments() == null) return;
-
-                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager()
-                        .getFragments().get(index);
-
-                if (f != null) {
-                    TextView textView = f.getTextView();
-
-                    if (textView != null) {
-
-                        String text;
-
-                        if (status == GarageOpenerClient.DoorPosition.DOOR_CLOSED) text = "Closed";
-                        else if (status == GarageOpenerClient.DoorPosition.DOOR_MOVING) text = "Moving";
-                        else text = "Open";
-
-                        textView.setText(text);
-                    }
-                }
-            }
-        });
-    }
+//    public void updateGarageView(final int index, final GarageOpenerClient.DoorPosition status) {
+//        //TODO: Implement method when we get garage pictures.
+//
+//        getActivity().runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                //TODO: Make sure we're getting the right fragment
+//                if (getChildFragmentManager() == null ||
+//                        getChildFragmentManager().getFragments() == null) return;
+//
+//                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager()
+//                        .getFragments().get(index);
+//
+//                if (f != null) {
+//                    TextView textView = f.getTextView();
+//
+//                    if (textView != null) {
+//
+//                        String text;
+//
+//                        if (status == GarageOpenerClient.DoorPosition.DOOR_CLOSED) text = "Closed";
+//                        else if (status == GarageOpenerClient.DoorPosition.DOOR_MOVING) text = "Moving";
+//                        else text = "Open";
+//
+//                        textView.setText(text);
+//                    }
+//                }
+//            }
+//        });
+//    }
 
     private void setNumDoors(int numDoors) {
         this.numDoors = numDoors;
-    }
-
-    @Override
-    public void setGarageDoorCount(final int garageDoorCount) {
-        if (getActivity() == null) {
-            //Not yet attached. We will be updated then.
-            return;
-        }
-
-        //Don't bother updating to the same value
-        if (numDoors == garageDoorCount) return;
-
-
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                setNumDoors(garageDoorCount);
-
-                if (mPagerAdapter != null) {
-                    mPagerAdapter.notifyDataSetChanged();
-
-                    if (!initialized) {
-                        mPager.setCurrentItem(currentDoor);
-                    }
-                }
-
-                initialized = true;
-            }
-        });
     }
 
 
@@ -260,14 +231,13 @@ public class GaragePager extends Fragment implements
         @NotNull
         @Override
         public Fragment getItem(int position) {
-            boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;
+            //boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;
             return GarageOpenerFragment.newInstance(position);
         }
 
         @Override
         public int getCount() {
-            if (garageOpenerClient == null) return 0;
-            return numDoors;
+            return garageOpenerClient.getNumberOfGarageDoors();
         }
 
         @Override

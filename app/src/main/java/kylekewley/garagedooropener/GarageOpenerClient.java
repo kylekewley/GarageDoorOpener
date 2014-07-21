@@ -1,6 +1,11 @@
 package kylekewley.garagedooropener;
 
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.widget.BaseAdapter;
 
 import com.kylekewley.piclient.CustomBufferParser;
 import com.kylekewley.piclient.PiClient;
@@ -10,7 +15,9 @@ import com.kylekewley.piclient.protocolbuffers.ParseError;
 import com.squareup.wire.Message;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kylekewley.garagedooropener.Constants.ClientParserId;
@@ -62,8 +69,13 @@ public class GarageOpenerClient {
      * The size of the array is equal to the number of garage door views
      * displayed by the app.
      */
-    private GarageDoor[] garageDoors;
+    @NotNull
+    private final ArrayList<GarageDoor> garageDoors = new ArrayList<GarageDoor>();
 
+    @Nullable
+    private ViewPager viewPager;
+
+    @Nullable
     private GarageOpenerView openerView;
 
     /**
@@ -73,7 +85,6 @@ public class GarageOpenerClient {
     private void sharedConstructor(@NotNull PiClient client) {
         boolean registered = client.getPiParser().registerParserForId(new OpenerParser(),
                 ClientParserId.DOOR_CHANGE_CLIENT_ID.getId());
-        garageDoors = new GarageDoor[0];
         if (!registered) {
             throw new RuntimeException("The door updater parser was unable to be registered" +
                     "for parser id: " + ClientParserId.DOOR_CHANGE_CLIENT_ID.getId() +
@@ -127,7 +138,7 @@ public class GarageOpenerClient {
     public void setDoorStatusAtIndex(int index, DoorPosition newStatus) throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
-        garageDoors[index].doorPosition = newStatus;
+        garageDoors.get(index).doorPosition = newStatus;
 
     }
 
@@ -140,7 +151,7 @@ public class GarageOpenerClient {
         checkDoorIndexBounds(index);
 
 
-        return garageDoors[index].doorPosition;
+        return garageDoors.get(index).doorPosition;
     }
 
     /**
@@ -154,7 +165,7 @@ public class GarageOpenerClient {
             throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
-        garageDoors[index].lastStatusChange = lastStatusChange;
+        garageDoors.get(index).lastStatusChange = lastStatusChange;
     }
 
     /**
@@ -165,7 +176,7 @@ public class GarageOpenerClient {
     public long getLastStatusChangeAtIndex(int index) throws IndexOutOfBoundsException {
         checkDoorIndexBounds(index);
 
-        return garageDoors[index].lastStatusChange;
+        return garageDoors.get(index).lastStatusChange;
     }
 
 
@@ -173,9 +184,7 @@ public class GarageOpenerClient {
      * @return  The number of garage doors tracked by the client.
      */
     public int getNumberOfGarageDoors() {
-        if (garageDoors == null)
-            return 0;
-        return garageDoors.length;
+        return garageDoors.size();
     }
 
 
@@ -192,15 +201,12 @@ public class GarageOpenerClient {
         return (((System.currentTimeMillis()/1000) - openTime) < DOOR_CLOSE_TIME);
     }
 
-    public void setOpenerView(GarageOpenerView view) {
-        this.openerView = view;
-
-        openerView.setGarageOpenerClient(this);
-        openerView.setGarageDoorCount(getNumberOfGarageDoors());
+    public void setViewPager(ViewPager viewPager) {
+        this.viewPager = viewPager;
     }
 
-    public int getDoorCount() {
-        return garageDoors.length;
+    public void setOpenerView(GarageOpenerView openerView) {
+        this.openerView = openerView;
     }
 
     public boolean triggerDoor(int doorIndex) {
@@ -248,42 +254,38 @@ public class GarageOpenerClient {
      * @param numDoors  The number of doors to initialize.
      */
     private void initializeDoorArray(int numDoors) {
-        garageDoors = new GarageDoor[numDoors];
-
+        garageDoors.clear();
         for (int i = 0; i < numDoors; i++) {
-            garageDoors[i] = new GarageDoor(i, -1, DoorPosition.DOOR_NOT_CLOSED);
+            garageDoors.add(new GarageDoor(i, -1, DoorPosition.DOOR_NOT_CLOSED));
         }
     }
 
     private void requestGarageDoorStatus() {
-        if (client != null) {
-            PiMessage statusRequest = new PiMessage(ServerParserId.GARAGE_STATUS_ID.getId());
+        PiMessage statusRequest = new PiMessage(ServerParserId.GARAGE_STATUS_ID.getId());
 
-            statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
-                @Override
-                public void serverReturnedData(byte[] data, PiMessage message) {
+        statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
+            @Override
+            public void serverReturnedData(byte[] data, PiMessage message) {
 
-                }
+            }
 
-                @Override
-                public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
-                    GarageStatus status = (GarageStatus)response;
-                    parseDoorStatusList(status.doors);
-                    updateInterfaceChanges();
-                }
-                @Override
-                public void serverSuccessfullyParsedMessage(PiMessage message) {
+            @Override
+            public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
+                GarageStatus status = (GarageStatus)response;
+                parseDoorStatusList(status.doors);
+            }
+            @Override
+            public void serverSuccessfullyParsedMessage(PiMessage message) {
 
-                }
+            }
 
-                @Override
-                public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
-                    Log.d(TAG, "Error parsing status request message.");
-                }
-            });
+            @Override
+            public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
+                Log.d(TAG, "Error parsing status request message.");
+            }
+        });
 
-            client.sendMessage(statusRequest);
-        }
+        client.sendMessage(statusRequest);
     }
 
     /**
@@ -302,39 +304,47 @@ public class GarageOpenerClient {
      * Parse the full list of DoorStatus objects and update the array.
      * Currently, the list must include every garage door.
      */
-    private void parseDoorStatusList(@NotNull List<GarageStatus.DoorStatus> doorStatusList) {
-        initializeDoorArray(doorStatusList.size());
-        for (GarageStatus.DoorStatus status : doorStatusList) {
-            int index = status.garageId;
-            boolean closed = status.isClosed;
+    private void parseDoorStatusList(@NotNull final List<GarageStatus.DoorStatus> doorStatusList) {
 
-            setLastStatusChangeAtIndex(index, status.timestamp);
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                initializeDoorArray(doorStatusList.size());
+                for (GarageStatus.DoorStatus status : doorStatusList) {
+                    int index = status.garageId;
+                    boolean closed = status.isClosed;
 
-            if (closed) {
-                //Easy case
-                setDoorStatusAtIndex(index, DoorPosition.DOOR_CLOSED);
-            }else {
-                //Check if it is still moving
-                if (isGarageMoving(status.timestamp)) {
-                    setDoorStatusAtIndex(index, DoorPosition.DOOR_MOVING);
-                }else {
-                    setDoorStatusAtIndex(index, DoorPosition.DOOR_NOT_CLOSED);
+                    setLastStatusChangeAtIndex(index, status.timestamp);
+
+                    if (closed) {
+                        //Easy case
+                        setDoorStatusAtIndex(index, DoorPosition.DOOR_CLOSED);
+                    }else {
+                        //Check if it is still moving
+                        if (isGarageMoving(status.timestamp)) {
+                            setDoorStatusAtIndex(index, DoorPosition.DOOR_MOVING);
+                        }else {
+                            setDoorStatusAtIndex(index, DoorPosition.DOOR_NOT_CLOSED);
+                        }
+                    }
                 }
             }
+        };
+
+        if (openerView != null) {
+            openerView.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    r.run();
+                    if (viewPager != null && viewPager.getAdapter() != null)
+                        viewPager.getAdapter().notifyDataSetChanged();
+                }
+            });
+        }else {
+            r.run();
         }
+
     }
-
-    private void updateInterfaceChanges() {
-        if (openerView == null) return;
-
-        openerView.setGarageDoorCount(getDoorCount());
-
-        for (int i = 0; i < getDoorCount(); i++) {
-            openerView.updateGarageView(i, garageDoors[i].doorPosition);
-        }
-    }
-
-
 
 
     /*
@@ -387,7 +397,6 @@ public class GarageOpenerClient {
         @Override
         public void parse(@NotNull GarageStatus message) {
             parseDoorStatusList(message.doors);
-            updateInterfaceChanges();
         }
     }
 

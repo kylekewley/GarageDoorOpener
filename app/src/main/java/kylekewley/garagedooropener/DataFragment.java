@@ -103,9 +103,6 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         return garageOpenerClient;
     }
 
-    public void setGarageOpenerView(GarageOpenerView garageOpenerView) {
-        garageOpenerClient.setOpenerView(garageOpenerView);
-    }
 
     /**
      * @return  The garageHistoryClient object in charge of updating the history view.
