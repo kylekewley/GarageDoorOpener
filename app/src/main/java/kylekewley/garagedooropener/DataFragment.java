@@ -115,9 +115,6 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         return garageHistoryClient;
     }
 
-    public void setGarageHistoryView(GarageHistoryView garageHistoryView) {
-        garageHistoryClient.setHistoryView(garageHistoryView);
-    }
     /*
     Creating a connection.
      */

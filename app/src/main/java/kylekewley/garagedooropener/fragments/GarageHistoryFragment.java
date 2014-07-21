@@ -34,15 +34,11 @@ public class GarageHistoryFragment extends Fragment implements
 
     public static final String GARAGE_HISTORY_TAG = "garage_history";
 
-    /**
-     * The object that holds our data.
-     */
-    private GarageHistoryClient garageHistoryClient;
 
     /**
      * The array adapter for the ListView.
      */
-    private DoorArrayAdapter mAdapter;
+    private GarageHistoryClient mAdapter;
 
     /**
      * The actual ListView being displayed.
@@ -74,100 +70,23 @@ public class GarageHistoryFragment extends Fragment implements
         //Set the title for the activity
         ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_history));
 
-        garageHistoryClient = ((MainActivity)getActivity()).getDataFragment().getGarageHistoryClient();
+        mAdapter = ((MainActivity)getActivity()).getDataFragment().getGarageHistoryClient();
+        mAdapter.setHistoryView(this);
 
-        mAdapter = new DoorArrayAdapter(getActivity());
-        mAdapter.addAll(garageHistoryClient.getStatusList());
-
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_garage_history, container, false);
 
         mListView = (ListView)view.findViewById(R.id.list_view);
         mListView.setAdapter(mAdapter);
 
+
         return view;
     }
 
-
-    /*
-    Garage History View implementation
-     */
-
     @Override
-    public void notifyDataSetChanged() {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter != null)
-                    mAdapter.notifyDataSetChanged();
-            }
-        });
+    public void onDestroy() {
+        super.onDestroy();
+        mAdapter.destroyHistoryView();
     }
 
 
-    public void clearDataSet() {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter != null) {
-                    mAdapter.clear();
-                    mAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
-    public void addToDataSet(final Collection<GarageStatus.DoorStatus> collection) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter != null) {
-                    mAdapter.addAll(collection);
-                    mAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
-    public void addToDataSet(final GarageStatus.DoorStatus item) {
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (mAdapter != null) {
-                    mAdapter.add(item);
-                    mAdapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
-
-    private class DoorArrayAdapter extends ArrayAdapter<GarageStatus.DoorStatus> {
-        public DoorArrayAdapter(Context context) {
-            super(context, R.layout.history_list_item);
-        }
-        public DoorArrayAdapter(Context context, ArrayList<GarageStatus.DoorStatus> statusList) {
-            super(context, R.layout.history_list_item, statusList);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            GarageStatus.DoorStatus change = getItem(position);
-            // Check if an existing view is being reused, otherwise inflate the view
-            if (convertView == null) {
-                convertView = LayoutInflater.from(getContext()).inflate(R.layout.history_list_item, parent, false);
-            }
-            // Lookup view for data population
-            TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-            TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
-            // Populate the data into the template view using the data object
-            tvName.setText(Integer.toString(change.garageId));
-            tvHome.setText(Long.toString(change.timestamp));
-            // Return the completed view to render on screen
-            return convertView;
-
-        }
-
-
-    }
 }

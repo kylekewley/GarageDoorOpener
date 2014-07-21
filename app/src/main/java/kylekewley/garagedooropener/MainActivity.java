@@ -247,7 +247,6 @@ public class MainActivity extends FragmentActivity implements
                     break;
                 case 1:
                     fragment = GarageHistoryFragment.newInstance();
-                    dataFragment.setGarageHistoryView((GarageHistoryFragment)fragment);
                     break;
             }
         }
