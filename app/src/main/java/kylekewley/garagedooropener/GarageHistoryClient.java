@@ -1,15 +1,13 @@
 package kylekewley.garagedooropener;
 
-import android.app.Application;
-import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.kylekewley.piclient.OrderedUniqueArrayList;
 import com.kylekewley.piclient.PiClient;
 import com.kylekewley.piclient.PiMessage;
 import com.kylekewley.piclient.PiMessageCallbacks;
@@ -19,7 +17,7 @@ import com.squareup.wire.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import kylekewley.garagedooropener.protocolbuffers.GarageHistoryRequest;
@@ -47,7 +45,12 @@ public class GarageHistoryClient extends BaseAdapter {
      * The list of statuses to display.
      */
     @NotNull
-    final ArrayList<GarageStatus.DoorStatus> statusList = new ArrayList<GarageStatus.DoorStatus>();
+    final OrderedUniqueArrayList<GarageStatus.DoorStatus> statusList = new OrderedUniqueArrayList<GarageStatus.DoorStatus>(new Comparator<GarageStatus.DoorStatus>() {
+        @Override
+        public int compare(GarageStatus.DoorStatus lhs, GarageStatus.DoorStatus rhs) {
+            return rhs.uniqueId - lhs.uniqueId;
+        }
+    });
 
 
     /**
