@@ -260,7 +260,7 @@ public class GarageOpenerClient {
         }
     }
 
-    private void requestGarageDoorStatus() {
+    public void requestGarageDoorStatus() {
         PiMessage statusRequest = new PiMessage(ServerParserId.GARAGE_STATUS_ID.getId());
 
         statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
@@ -393,12 +393,14 @@ public class GarageOpenerClient {
     }
 
     private class OpenerParser extends CustomBufferParser<GarageStatus> {
+        public OpenerParser() {
+            super(GarageStatus.class);
+        }
 
         @Override
         public void parse(@NotNull GarageStatus message) {
+            Log.d(TAG, "Parsing update");
             parseDoorStatusList(message.doors);
         }
     }
-
-
 }

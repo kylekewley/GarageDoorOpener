@@ -29,6 +29,8 @@ import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
  * Created by kylekewley on 7/8/14.
  */
 public class GarageHistoryClient extends BaseAdapter {
+    private final String TAG = "history_client";
+    private final int SECONDS_PER_DAY = 86400;
     /**
      * The client that will be used for sending and receiving messages.
      */
@@ -57,7 +59,6 @@ public class GarageHistoryClient extends BaseAdapter {
 
         this.client = piClient;
         Log.d("History", "Requesting history");
-        requestGarageHistory((int)(System.currentTimeMillis()/1000-60*60*24), 60*60*24);
     }
 
     /*
@@ -91,40 +92,88 @@ public class GarageHistoryClient extends BaseAdapter {
     /*
     Getting data
      */
-    private void requestGarageHistory(int startTime, int interval) {
+
+    /**
+     * Requests the garage history for the last 24 hours.
+     */
+    public void requestGarageHistory() {
+        requestGarageHistory(epochTime()-SECONDS_PER_DAY, SECONDS_PER_DAY);
+    }
+
+    /**
+     * Requests garage history from the the current time to the current time minus interval seconds.
+     *
+     * @param interval  How many seconds back to request the history for.
+     */
+    public void requestGarageHistory(int interval) {
+        requestGarageHistory(epochTime()-interval, interval);
+
+    }
+
+    /**
+     * Requests the garage history from the given start time, to startTime+interval.
+     * The interval is allowed to be negative.
+     * @param startTime     The start epoch time for the history.
+     * @param interval      How many seconds to request the history for.
+     */
+    public void requestGarageHistory(int startTime, int interval) {
         GarageHistoryRequest historyRequest = new GarageHistoryRequest(startTime, interval);
         PiMessage message = new PiMessage(Constants.ServerParserId.GARAGE_HISTORY_ID.getId(), historyRequest);
 
         message.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
-
+                Log.d(TAG, "Problem...Server returned data");
             }
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
                 GarageStatus statusData = (GarageStatus)response;
                 if (statusData != null) {
-                    List<GarageStatus.DoorStatus> doorStatuses = statusData.doors;
+                    final List<GarageStatus.DoorStatus> doorStatuses = statusData.doors;
                     //TODO: This is very inefficient.
-                    for (GarageStatus.DoorStatus door : doorStatuses) {
-                        addToDataSet(door);
+                    if (historyView != null && historyView.getActivity() != null) {
+                        historyView.getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                synchronized (statusList) {
+                                    for (GarageStatus.DoorStatus door : doorStatuses) {
+                                        statusList.add(door);
+                                    }
+                                    notifyDataSetChanged();
+                                }
+                            }
+                        });
+                    }else {
+                        synchronized (statusList) {
+                            for (GarageStatus.DoorStatus door : doorStatuses) {
+                                statusList.add(door);
+                            }
+                        }
+                        Log.d(TAG, "Added " + doorStatuses.size() + " items in the background. Total size: " + statusList.size());
                     }
+
                 }
             }
 
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-
+                Log.d(TAG, "History parsed successfully?");
             }
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
-
+                Log.d(TAG, "oops. We got an error: " + parseError.errorMessage);
             }
         });
 
+
+        Log.d(TAG, "Sending message");
         client.sendMessage(message);
+    }
+
+    private int epochTime() {
+        return (int)(System.currentTimeMillis()/1000);
     }
 
     private void addToDataSet(final GarageStatus.DoorStatus door) {

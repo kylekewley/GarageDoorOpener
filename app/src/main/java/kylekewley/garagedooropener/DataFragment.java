@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.kylekewley.piclient.PiClient;
@@ -140,8 +141,11 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
             piClient.close();
         }
 
-        piClient.addToGroup(Constants.GARAGE_GROUP_ID);
         piClient.connectToPiServer(getHostName(), getPortNumber());
+        piClient.addToGroup(Constants.GARAGE_GROUP_ID);
+        garageOpenerClient.requestGarageDoorStatus();
+        garageHistoryClient.requestGarageHistory();
+        Log.d("TAG", "Actually requesting history");
     }
 
         /*

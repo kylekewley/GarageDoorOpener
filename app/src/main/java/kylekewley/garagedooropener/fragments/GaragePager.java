@@ -211,7 +211,7 @@ public class GaragePager extends Fragment implements
         @Override
         public Fragment getItem(int position) {
             //boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;
-            return GarageOpenerFragment.newInstance(position);
+            return GarageOpenerFragment.newInstance(garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED ? 1 : 0);
         }
 
         @Override
