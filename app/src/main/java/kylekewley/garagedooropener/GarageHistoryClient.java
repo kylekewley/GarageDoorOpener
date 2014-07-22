@@ -19,9 +19,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import kylekewley.garagedooropener.protocolbuffers.GarageHistoryRequest;
 import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
@@ -34,6 +37,8 @@ public class GarageHistoryClient extends BaseAdapter {
     private final int SECONDS_PER_DAY = 86400;
 
     private final static SimpleDateFormat epochDateFormat = new SimpleDateFormat("hh:mm:ss a | EEEE MMMM dd, yyyy");
+
+
     /**
      * The client that will be used for sending and receiving messages.
      */
@@ -105,11 +110,26 @@ public class GarageHistoryClient extends BaseAdapter {
      * Requests the garage history for the last 24 hours.
      */
     public void requestGarageHistory() {
-        requestGarageHistory(epochTime()-SECONDS_PER_DAY, SECONDS_PER_DAY);
+        if (historyView != null) {
+            requestGarageHistory(historyView.getDaySelected(), SECONDS_PER_DAY);
+        }else {
+            requestGarageHistory(getBeginningOfDay(epochTime()), SECONDS_PER_DAY);
+        }
+    }
+
+    private static int getBeginningOfDay(int dayEpoch) {
+        Calendar mCalendar = new GregorianCalendar();
+        TimeZone mTimeZone = mCalendar.getTimeZone();
+        int mGMTOffset = mTimeZone.getRawOffset();
+
+        int withOffset = dayEpoch-mGMTOffset;
+        int secondsPerDay = 86400;
+
+        return withOffset-withOffset%secondsPerDay+mGMTOffset;
     }
 
     /**
-     * Requests garage history from the the current time to the current time minus interval seconds.
+     * Requests garage history from day selected by the user.
      *
      * @param interval  How many seconds back to request the history for.
      */
@@ -182,21 +202,28 @@ public class GarageHistoryClient extends BaseAdapter {
     }
 
     private void addToDataSet(final GarageStatus.DoorStatus door) {
-        if (historyView != null && historyView.getActivity() != null) {
-            historyView.getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (statusList) {
-                        statusList.add(door);
-                        notifyDataSetChanged();
-                    }
-                }
-            });
-        }else {
-            synchronized (statusList) {
-                statusList.add(door);
-            }
+        synchronized (statusList) {
+            statusList.add(door);
         }
+    }
+
+    /**
+     * Clears out all existing data
+     */
+    public void clearData() {
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                synchronized (statusList) {
+                    statusList.clear();
+                    notifyDataSetChanged();
+                }
+            }
+        };
+        if (historyView != null && historyView.getActivity() != null)
+            historyView.getActivity().runOnUiThread(r);
+        else
+            r.run();
     }
 
 

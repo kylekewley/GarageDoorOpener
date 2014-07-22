@@ -204,6 +204,9 @@ public class MainActivity extends FragmentActivity implements
         return false;
     }
 
+    public NavigationDrawerFragment getNavigationDrawerFragment() {
+        return mNavigationDrawerFragment;
+    }
 
 
 
