@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+import android.widget.TwoLineListItem;
 
 import com.kylekewley.piclient.OrderedUniqueArrayList;
 import com.kylekewley.piclient.PiClient;
@@ -17,7 +18,9 @@ import com.squareup.wire.Message;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import kylekewley.garagedooropener.protocolbuffers.GarageHistoryRequest;
@@ -29,6 +32,8 @@ import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 public class GarageHistoryClient extends BaseAdapter {
     private final String TAG = "history_client";
     private final int SECONDS_PER_DAY = 86400;
+
+    private final static SimpleDateFormat epochDateFormat = new SimpleDateFormat("hh:mm:ss a | EEEE MMMM dd, yyyy");
     /**
      * The client that will be used for sending and receiving messages.
      */
@@ -134,25 +139,22 @@ public class GarageHistoryClient extends BaseAdapter {
                 GarageStatus statusData = (GarageStatus)response;
                 if (statusData != null) {
                     final List<GarageStatus.DoorStatus> doorStatuses = statusData.doors;
-                    //TODO: This is very inefficient.
-                    if (historyView != null && historyView.getActivity() != null) {
-                        historyView.getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                synchronized (statusList) {
-                                    for (GarageStatus.DoorStatus door : doorStatuses) {
-                                        statusList.add(door);
-                                    }
-                                    notifyDataSetChanged();
+
+                    Runnable r = new Runnable() {
+                        @Override
+                        public void run() {
+                            synchronized (statusList) {
+                                for (GarageStatus.DoorStatus door : doorStatuses) {
+                                    statusList.add(door);
                                 }
+                                notifyDataSetChanged();
                             }
-                        });
+                    }};
+
+                    if (historyView != null && historyView.getActivity() != null) {
+                        historyView.getActivity().runOnUiThread(r);
                     }else {
-                        synchronized (statusList) {
-                            for (GarageStatus.DoorStatus door : doorStatuses) {
-                                statusList.add(door);
-                            }
-                        }
+                        r.run();
                         Log.d(TAG, "Added " + doorStatuses.size() + " items in the background. Total size: " + statusList.size());
                     }
 
@@ -196,6 +198,8 @@ public class GarageHistoryClient extends BaseAdapter {
             }
         }
     }
+
+
     /*
     Implementing abstract methods
      */
@@ -225,6 +229,7 @@ public class GarageHistoryClient extends BaseAdapter {
         synchronized (statusList) {
             change = statusList.get(position);
         }
+
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
             if (historyView == null) return null;
@@ -232,12 +237,17 @@ public class GarageHistoryClient extends BaseAdapter {
             convertView = LayoutInflater.from(historyView.getActivity()).inflate(R.layout.history_list_item, parent, false);
         }
         // Lookup view for data population
-        TextView tvName = (TextView) convertView.findViewById(R.id.tvName);
-        TextView tvHome = (TextView) convertView.findViewById(R.id.tvHome);
+        TextView mainText = (TextView) convertView.findViewById(R.id.titleText);
+        TextView subText = (TextView) convertView.findViewById(R.id.subtitleText);
         // Populate the data into the template view using the data object
-        tvName.setText(Integer.toString(change.garageId));
-        tvHome.setText(Long.toString(change.timestamp));
+
+        String topText = "Door " + change.garageId + (change.isClosed ? " Closed" : " Opened");
+
         // Return the completed view to render on screen
+        String bottomText = epochDateFormat.format(new Date((long)change.timestamp*1000L));
+
+        mainText.setText(topText);
+        subText.setText(bottomText);
         return convertView;
     }
 }
