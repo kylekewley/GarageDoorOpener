@@ -6,10 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
 
+import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
 
@@ -35,6 +37,8 @@ public class GarageOpenerFragment extends Fragment {
     private int garageId;
 
     private TextView textView;
+
+    private ImageButton doorImage;
 
     /**
      * Use this factory method to create a new instance of
@@ -73,17 +77,15 @@ public class GarageOpenerFragment extends Fragment {
 
         textView = (TextView)view.findViewById(R.id.page_number_text);
 
-        if (textView != null) {
-            textView.setText(Integer.toString(garageId));
-        }
+        setDoorPosition(((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient().getDoorStatusAtIndex(garageId));
 
-        Button b = (Button)view.findViewById(R.id.open_button);
+        doorImage = (ImageButton)view.findViewById(R.id.door_image);
 
-        if (b != null) {
-            b.setOnClickListener(new View.OnClickListener() {
+        if (doorImage != null) {
+            doorImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    MainActivity activity = (MainActivity)getActivity();
+                    MainActivity activity = (MainActivity) getActivity();
                     if (activity != null) {
                         activity.getDataFragment().getGarageOpenerClient().triggerDoor(garageId);
                     }
@@ -94,17 +96,26 @@ public class GarageOpenerFragment extends Fragment {
         return view;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        if (getView() != null) {
-            textView = (TextView)getView().findViewById(R.id.page_number_text);
+    public void setDoorPosition(GarageOpenerClient.DoorPosition position) {
+        if (textView != null) {
+            if (position == GarageOpenerClient.DoorPosition.DOOR_CLOSED) {
+                setDoorClosed();
+            }else if (position == GarageOpenerClient.DoorPosition.DOOR_MOVING) {
+                setDoorPartial();
+            }else if (position == GarageOpenerClient.DoorPosition.DOOR_NOT_CLOSED) {
+                setDoorOpen();
+            }
         }
     }
+    private void setDoorOpen() {
+        textView.setText("Open");
+    }
+    private void setDoorPartial() {
+        textView.setText("Partial");
 
-    public TextView getTextView() {
-        return textView;
+    }
+    private void setDoorClosed() {
+        textView.setText("Closed");
     }
 
 }

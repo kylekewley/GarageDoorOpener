@@ -210,8 +210,11 @@ public class GaragePager extends Fragment implements
         @NotNull
         @Override
         public Fragment getItem(int position) {
-            //boolean closed = garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED;
-            return GarageOpenerFragment.newInstance(garageOpenerClient.getDoorStatusAtIndex(position) == GarageOpenerClient.DoorPosition.DOOR_CLOSED ? 1 : 0);
+            GarageOpenerClient.DoorPosition doorPosition = garageOpenerClient.getDoorStatusAtIndex(position);
+            GarageOpenerFragment fragment = GarageOpenerFragment.newInstance(position);
+
+            fragment.setDoorPosition(doorPosition);
+            return fragment;
         }
 
         @Override
