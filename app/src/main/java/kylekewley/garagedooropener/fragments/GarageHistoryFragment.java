@@ -1,11 +1,7 @@
 package kylekewley.garagedooropener.fragments;
 
-import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,29 +10,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import net.davidcesarino.android.atlantis.ui.dialog.DatePickerDialogFragment;
+
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import kylekewley.garagedooropener.Constants;
 import kylekewley.garagedooropener.GarageHistoryClient;
 import kylekewley.garagedooropener.GarageHistoryView;
 import kylekewley.garagedooropener.MainActivity;
 import kylekewley.garagedooropener.R;
-import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -45,7 +38,7 @@ import kylekewley.garagedooropener.protocolbuffers.GarageStatus;
  *
  */
 public class GarageHistoryFragment extends Fragment implements
-        GarageHistoryView, DatePickerDialog.OnDateSetListener, DatePickerDialog.OnDismissListener {
+        GarageHistoryView, DatePickerDialog.OnDateSetListener {
 
     public static final String GARAGE_HISTORY_TAG = "garage_history";
 
@@ -62,7 +55,7 @@ public class GarageHistoryFragment extends Fragment implements
 
     private static final String ARG_DATE_BUNDLE = "date_picker_bundle";
 
-    private DatePickerDialog datePickerDialog = null;
+    private DatePickerDialogFragment datePickerDialog = null;
 
     /**
      * The relative layout for the loading view
@@ -131,10 +124,7 @@ public class GarageHistoryFragment extends Fragment implements
             //Show the date picker if it was previously shown.
             Bundle dateBundle = savedInstanceState.getBundle(ARG_DATE_BUNDLE);
             if (dateBundle != null) {
-                datePickerDialog = new DatePickerDialog(getActivity(), this, 0, 0, 0);
-                datePickerDialog.setOnDismissListener(this);
-                datePickerDialog.onRestoreInstanceState(dateBundle);
-                datePickerDialog.show();
+                showDatePickerWithBundleDate(dateBundle);
             }
         }
 
@@ -145,10 +135,12 @@ public class GarageHistoryFragment extends Fragment implements
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+
         //Save the datePickerDialog instance state
         if (datePickerDialog != null) {
-            datePickerDialog.dismiss();
-            outState.putBundle(ARG_DATE_BUNDLE, datePickerDialog.onSaveInstanceState());
+            if (datePickerDialog.getDialog() != null && datePickerDialog.getDialog().isShowing()) {
+                outState.putBundle(ARG_DATE_BUNDLE, datePickerDialog.getBundledDate());
+            }
             datePickerDialog = null;
         }
     }
@@ -215,15 +207,28 @@ public class GarageHistoryFragment extends Fragment implements
         });
     }
 
+    private void showDatePickerWithStoredDate() {
+        Calendar calendar = new GregorianCalendar(Locale.getDefault());
+        calendar.setTime(new Date(mAdapter.getTimeEpoch()*1000L));
+        Bundle b = new Bundle();
+        b.putInt(DatePickerDialogFragment.YEAR, calendar.get(Calendar.YEAR));
+        b.putInt(DatePickerDialogFragment.MONTH, calendar.get(Calendar.MONTH));
+        b.putInt(DatePickerDialogFragment.DATE, calendar.get(Calendar.DAY_OF_MONTH));
+        showDatePickerWithBundleDate(b);
+    }
+
+    private void showDatePickerWithBundleDate(Bundle b) {
+        datePickerDialog = new DatePickerDialogFragment();
+        datePickerDialog.setArguments(b);
+        datePickerDialog.setOnDateSetListener(this);
+        datePickerDialog.show(getActivity().getSupportFragmentManager(), "frag_date_picker");
+
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_change_date) {
-            Calendar calendar = new GregorianCalendar(Locale.getDefault());
-            calendar.setTime(new Date(mAdapter.getTimeEpoch()*1000L));
-
-            datePickerDialog = new DatePickerDialog(getActivity(), this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-            datePickerDialog.setOnDismissListener(this);
-            datePickerDialog.show();
+            showDatePickerWithStoredDate();
             return true;
         }
         return false;
@@ -247,11 +252,6 @@ public class GarageHistoryFragment extends Fragment implements
             mAdapter.clearData();
             mAdapter.requestGarageHistory();
         }
-    }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        datePickerDialog = null;
     }
 
 }
