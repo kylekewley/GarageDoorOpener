@@ -170,24 +170,30 @@ public class GarageHistoryFragment extends Fragment implements
         //Show the loadingLayout
         //Hide the textView
         //Show the progress bar
+        if (loadingLayout != null && noResultTextView != null && progressBar != null) {
+            loadingLayout.setVisibility(View.VISIBLE);
+            noResultTextView.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
 
-        loadingLayout.setVisibility(View.VISIBLE);
-        noResultTextView.setVisibility(View.GONE);
-        progressBar.setVisibility(View.VISIBLE);
+        }
     }
 
     private void finishedLoadingWithData() {
-        loadingLayout.setVisibility(View.GONE);
+        if (loadingLayout != null)
+            loadingLayout.setVisibility(View.GONE);
     }
 
     private void finishedLoadingWithoutData() {
-        loadingLayout.setVisibility(View.VISIBLE);
-        noResultTextView.setVisibility(View.VISIBLE);
-        progressBar.setVisibility(View.GONE);
+        if (loadingLayout != null && noResultTextView != null && progressBar != null) {
 
-        //Update the text
-        String resultString = "No history for " + Constants.epochDateFormat.format(new Date(mAdapter.getTimeEpoch()*1000L));
-        noResultTextView.setText(resultString);
+            loadingLayout.setVisibility(View.VISIBLE);
+            noResultTextView.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+
+            //Update the text
+            String resultString = "No history for " + Constants.epochDateFormat.format(new Date(mAdapter.getTimeEpoch() * 1000L));
+            noResultTextView.setText(resultString);
+        }
 
     }
 
@@ -200,8 +206,10 @@ public class GarageHistoryFragment extends Fragment implements
                     showLoadingIndicator();
                 }else if (mAdapter.getCount() > 0) {
                     finishedLoadingWithData();
-                }else {
+                }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
                     finishedLoadingWithoutData();
+                }else {
+                    finishedLoadingWithData();
                 }
             }
         });

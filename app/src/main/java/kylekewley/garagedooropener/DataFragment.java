@@ -141,6 +141,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
             piClient.close();
             garageHistoryClient.clearData();
             garageOpenerClient.clearDoors();
+            stopLoadingScreens();
         }
 
         piClient.connectToPiServer(getHostName(), getPortNumber());
@@ -150,6 +151,14 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         Log.d("TAG", "Actually requesting history");
     }
 
+    public void stopLoadingScreens() {
+        if (garageOpenerClient.getOpenerView() != null) {
+            garageOpenerClient.getOpenerView().loadingStatusChanged(false);
+        }
+        if (garageHistoryClient.getHistoryView() != null) {
+            garageHistoryClient.getHistoryView().loadingStatusChanged(false);
+        }
+    }
         /*
     PiClient Callbacks class
      */
@@ -224,6 +233,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 //Do nothing
+                                stopLoadingScreens();
                             }
                         }).create().show();
             }
@@ -255,6 +265,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 piClient.close();
+                                stopLoadingScreens();
                             }
                         }).create().show();
             }
@@ -288,6 +299,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                             public void onClick(DialogInterface dialog, int which) {
                                 //Disconnect
                                 piClient.close();
+                                stopLoadingScreens();
                             }
                         }).create().show();
             }

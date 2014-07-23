@@ -301,6 +301,11 @@ public class GarageOpenerClient {
         client.sendMessage(statusRequest);
     }
 
+    @Nullable
+    public GarageOpenerView getOpenerView() {
+        return openerView;
+    }
+
     /**
      * Throws an exception if the index is out of bounds for the garageDoors array.
      *

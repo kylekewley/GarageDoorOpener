@@ -171,7 +171,12 @@ public class GaragePager extends Fragment implements
 
 
     private void updateActionBarTitle() {
-        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+        if (garageOpenerClient.getNumberOfGarageDoors() == 0) {
+            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_overview));
+        }else {
+            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+
+        }
 
     }
 
@@ -225,6 +230,8 @@ public class GaragePager extends Fragment implements
 //        });
 //    }
 
+
+
     public class PagerAdapter extends FragmentStatePagerAdapter {
 
         public PagerAdapter(FragmentManager fm) {
@@ -254,6 +261,7 @@ public class GaragePager extends Fragment implements
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
+            updateActionBarTitle();
 
             if (!initialized) {
                 mPager.setCurrentItem(currentDoor, false);
@@ -270,8 +278,10 @@ public class GaragePager extends Fragment implements
                     showLoadingIndicator();
                 }else if (garageOpenerClient.getNumberOfGarageDoors() > 0) {
                     finishedLoadingWithData();
-                }else {
+                }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
                     finishedLoadingWithoutData();
+                }else {
+                    finishedLoadingWithData();
                 }
             }
         });

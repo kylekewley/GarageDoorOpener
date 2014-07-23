@@ -264,6 +264,10 @@ public class GarageHistoryClient extends BaseAdapter {
             r.run();
     }
 
+    @Nullable
+    public GarageHistoryView getHistoryView() {
+        return historyView;
+    }
 
     public int getTimeEpoch() {
         return timeEpoch;
