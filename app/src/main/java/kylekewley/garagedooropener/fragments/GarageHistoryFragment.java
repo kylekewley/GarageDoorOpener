@@ -111,7 +111,7 @@ public class GarageHistoryFragment extends Fragment implements
 
         loadingLayout = (RelativeLayout)view.findViewById(R.id.loading_layout);
         noResultTextView = (TextView)view.findViewById(R.id.no_history_text);
-        progressBar = (ProgressBar)view.findViewById(R.id.progress_bar);
+        progressBar = (ProgressBar)view.findViewById(R.id.opener_progress_bar);
 
 
         mListView = (ListView)view.findViewById(R.id.list_view);

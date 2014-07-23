@@ -10,11 +10,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Date;
+
+import kylekewley.garagedooropener.Constants;
 import kylekewley.garagedooropener.GarageOpenerClient;
 import kylekewley.garagedooropener.GarageOpenerView;
 import kylekewley.garagedooropener.MainActivity;
@@ -63,6 +68,21 @@ public class GaragePager extends Fragment implements
      */
     private boolean initialized = false;
 
+    /**
+     * The relative layout for the loading view
+     */
+    private RelativeLayout loadingLayout;
+
+    /**
+     * The textView for displaying the no result string
+     */
+    private TextView noResultTextView;
+
+    /**
+     * The loading indicator
+     */
+    private ProgressBar progressBar;
+
 
     @NotNull
     public static GaragePager newInstance() {
@@ -93,13 +113,17 @@ public class GaragePager extends Fragment implements
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View v = inflater.inflate(R.layout.fragment_garage_pager, container, false);
+        View view = inflater.inflate(R.layout.fragment_garage_pager, container, false);
 
-        if (v == null) return null;
+        if (view == null) return null;
 
-        mPager = (ViewPager)v.findViewById(R.id.view_pager);
+        mPager = (ViewPager)view.findViewById(R.id.view_pager);
 
-        if (mPager == null) return v;
+        if (mPager == null) return view;
+
+        loadingLayout = (RelativeLayout)view.findViewById(R.id.loading_parent);
+        noResultTextView = (TextView)view.findViewById(R.id.loaded_text);
+        progressBar = (ProgressBar)view.findViewById(R.id.opener_progress_bar);
 
         mPagerAdapter = new PagerAdapter(getChildFragmentManager());
         garageOpenerClient = ((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient();
@@ -121,7 +145,7 @@ public class GaragePager extends Fragment implements
 
 
 
-        return v;
+        return view;
     }
 
 
@@ -235,6 +259,47 @@ public class GaragePager extends Fragment implements
                 mPager.setCurrentItem(currentDoor, false);
             }
         }
+    }
+
+    @Override
+    public void loadingStatusChanged(final boolean loading) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (loading) {
+                    showLoadingIndicator();
+                }else if (garageOpenerClient.getNumberOfGarageDoors() > 0) {
+                    finishedLoadingWithData();
+                }else {
+                    finishedLoadingWithoutData();
+                }
+            }
+        });
+    }
+
+    private void showLoadingIndicator() {
+        //Show the loadingLayout
+        //Hide the textView
+        //Show the progress bar
+
+        loadingLayout.setVisibility(View.VISIBLE);
+        noResultTextView.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void finishedLoadingWithData() {
+        loadingLayout.setVisibility(View.GONE);
+    }
+
+    private void finishedLoadingWithoutData() {
+        loadingLayout.setVisibility(View.VISIBLE);
+        noResultTextView.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
+
+        //Update the text
+        String resultString = "No doors detected.";
+        noResultTextView.setText(resultString);
+
     }
 
 }

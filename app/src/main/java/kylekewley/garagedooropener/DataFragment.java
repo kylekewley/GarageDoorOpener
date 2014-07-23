@@ -140,6 +140,7 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         if (piClient.isConnected()) {
             piClient.close();
             garageHistoryClient.clearData();
+            garageOpenerClient.clearDoors();
         }
 
         piClient.connectToPiServer(getHostName(), getPortNumber());

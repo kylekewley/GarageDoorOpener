@@ -266,25 +266,38 @@ public class GarageOpenerClient {
         statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
-
+                if (openerView != null) {
+                    openerView.loadingStatusChanged(false);
+                }
             }
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
                 GarageStatus status = (GarageStatus)response;
                 parseDoorStatusList(status.doors);
+                if (openerView != null) {
+                    openerView.loadingStatusChanged(false);
+                }
             }
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-
+                if (openerView != null) {
+                    openerView.loadingStatusChanged(false);
+                }
             }
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
                 Log.d(TAG, "Error parsing status request message.");
+                if (openerView != null) {
+                    openerView.loadingStatusChanged(false);
+                }
+
             }
         });
-
+        if (openerView != null) {
+            openerView.loadingStatusChanged(true);
+        }
         client.sendMessage(statusRequest);
     }
 
@@ -344,6 +357,23 @@ public class GarageOpenerClient {
             r.run();
         }
 
+    }
+
+    public void clearDoors() {
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                garageDoors.clear();
+                if (viewPager != null && viewPager.getAdapter() != null)
+                    viewPager.getAdapter().notifyDataSetChanged();
+            }
+        };
+
+        if (openerView != null) {
+            openerView.getActivity().runOnUiThread(r);
+        }else {
+            r.run();
+        }
     }
 
 
