@@ -16,7 +16,6 @@
 package net.davidcesarino.android.atlantis.ui.dialog;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.Dialog;
@@ -24,8 +23,9 @@ import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
 import android.widget.DatePicker;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>This class provides a usable {@link DatePickerDialog} wrapped as a {@link DialogFragment},
@@ -82,12 +82,16 @@ public class DatePickerDialogFragment extends DialogFragment {
 
     public Bundle getBundledDate() {
         Bundle b = new Bundle();
-        b.putInt(YEAR, picker.getDatePicker().getYear());
-        b.putInt(MONTH, picker.getDatePicker().getMonth());
-        b.putInt(DATE, picker.getDatePicker().getDayOfMonth());
-
+        if (picker != null) {
+            b.putInt(YEAR, picker.getDatePicker().getYear());
+            b.putInt(MONTH, picker.getDatePicker().getMonth());
+            b.putInt(DATE, picker.getDatePicker().getDayOfMonth());
+        }
         return b;
     }
+
+
+    @NotNull
     @TargetApi(11)
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
