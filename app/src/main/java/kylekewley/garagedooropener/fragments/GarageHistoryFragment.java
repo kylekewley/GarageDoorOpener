@@ -111,13 +111,13 @@ public class GarageHistoryFragment extends Fragment implements
 
         loadingLayout = (RelativeLayout)view.findViewById(R.id.loading_layout);
         noResultTextView = (TextView)view.findViewById(R.id.no_history_text);
-        progressBar = (ProgressBar)view.findViewById(R.id.opener_progress_bar);
+        progressBar = (ProgressBar)view.findViewById(R.id.progress_bar);
 
 
         mListView = (ListView)view.findViewById(R.id.list_view);
         mListView.setAdapter(mAdapter);
 
-        loadingStatusChanged(mAdapter.isLoading());
+        loadingStatusChangedHelper(mAdapter.isLoading());
 
 
         if (savedInstanceState != null) {
@@ -202,17 +202,21 @@ public class GarageHistoryFragment extends Fragment implements
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loading) {
-                    showLoadingIndicator();
-                }else if (mAdapter.getCount() > 0) {
-                    finishedLoadingWithData();
-                }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
-                    finishedLoadingWithoutData();
-                }else {
-                    finishedLoadingWithData();
-                }
+                loadingStatusChangedHelper(loading);
             }
         });
+    }
+
+    private void loadingStatusChangedHelper(boolean loading) {
+        if (loading) {
+            showLoadingIndicator();
+        }else if (mAdapter.getCount() > 0) {
+            finishedLoadingWithData();
+        }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
+            finishedLoadingWithoutData();
+        }else {
+            finishedLoadingWithData();
+        }
     }
 
     private void showDatePickerWithStoredDate() {

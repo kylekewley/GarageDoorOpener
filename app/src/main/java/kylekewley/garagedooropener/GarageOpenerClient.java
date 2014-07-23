@@ -369,7 +369,7 @@ public class GarageOpenerClient {
             @Override
             public void run() {
                 garageDoors.clear();
-                if (viewPager != null && viewPager.getAdapter() != null)
+                if (openerView != null && viewPager != null && viewPager.getAdapter() != null)
                     viewPager.getAdapter().notifyDataSetChanged();
             }
         };
