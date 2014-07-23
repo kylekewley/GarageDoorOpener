@@ -36,7 +36,6 @@ public class GarageHistoryClient extends BaseAdapter {
     private final String TAG = "history_client";
     private final int SECONDS_PER_DAY = 86400;
 
-    private final static SimpleDateFormat epochDateFormat = new SimpleDateFormat("hh:mm:ss a | EEEE MMMM dd, yyyy");
 
 
     /**
@@ -61,6 +60,12 @@ public class GarageHistoryClient extends BaseAdapter {
             return rhs.uniqueId - lhs.uniqueId;
         }
     });
+
+    /**
+     * Tells whether or not the client is trying to load data.
+     */
+    @NotNull
+    private boolean isLoading = false;
 
 
     /**
@@ -117,6 +122,11 @@ public class GarageHistoryClient extends BaseAdapter {
         }
     }
 
+    @NotNull
+    public boolean isLoading() {
+        return isLoading;
+    }
+
     private static int getBeginningOfDay(int dayEpoch) {
         Calendar mCalendar = new GregorianCalendar();
         TimeZone mTimeZone = mCalendar.getTimeZone();
@@ -145,17 +155,27 @@ public class GarageHistoryClient extends BaseAdapter {
      * @param interval      How many seconds to request the history for.
      */
     public void requestGarageHistory(int startTime, int interval) {
-        GarageHistoryRequest historyRequest = new GarageHistoryRequest(startTime, interval);
+        final GarageHistoryRequest historyRequest = new GarageHistoryRequest(startTime, interval);
         PiMessage message = new PiMessage(Constants.ServerParserId.GARAGE_HISTORY_ID.getId(), historyRequest);
 
         message.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
                 Log.d(TAG, "Problem...Server returned data");
+                isLoading = false;
+                if (historyView != null) {
+                    historyView.loadingStatusChanged(isLoading);
+                }
+
             }
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
+                isLoading = false;
+                if (historyView != null) {
+                    historyView.loadingStatusChanged(isLoading);
+                }
+
                 GarageStatus statusData = (GarageStatus)response;
                 if (statusData != null) {
                     final List<GarageStatus.DoorStatus> doorStatuses = statusData.doors;
@@ -167,6 +187,10 @@ public class GarageHistoryClient extends BaseAdapter {
                                 for (GarageStatus.DoorStatus door : doorStatuses) {
                                     statusList.add(door);
                                 }
+                                if (historyView != null) {
+                                    historyView.loadingStatusChanged(isLoading);
+                                }
+
                                 notifyDataSetChanged();
                             }
                     }};
@@ -184,17 +208,29 @@ public class GarageHistoryClient extends BaseAdapter {
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
                 Log.d(TAG, "History parsed successfully?");
+                isLoading = false;
+                if (historyView != null) {
+                    historyView.loadingStatusChanged(isLoading);
+                }
             }
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
                 Log.d(TAG, "oops. We got an error: " + parseError.errorMessage);
+                isLoading = false;
+                if (historyView != null) {
+                    historyView.loadingStatusChanged(isLoading);
+                }
             }
         });
 
 
         Log.d(TAG, "Sending message");
         client.sendMessage(message);
+        isLoading = true;
+
+        if (historyView != null)
+            historyView.loadingStatusChanged(isLoading);
     }
 
     private int epochTime() {
@@ -271,7 +307,7 @@ public class GarageHistoryClient extends BaseAdapter {
         String topText = "Door " + change.garageId + (change.isClosed ? " Closed" : " Opened");
 
         // Return the completed view to render on screen
-        String bottomText = epochDateFormat.format(new Date((long)change.timestamp*1000L));
+        String bottomText = Constants.epochDateTimeFormat.format(new Date((long)change.timestamp*1000L));
 
         mainText.setText(topText);
         subText.setText(bottomText);

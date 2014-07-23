@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +31,7 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import kylekewley.garagedooropener.Constants;
 import kylekewley.garagedooropener.GarageHistoryClient;
 import kylekewley.garagedooropener.GarageHistoryView;
 import kylekewley.garagedooropener.MainActivity;
@@ -67,6 +70,22 @@ public class GarageHistoryFragment extends Fragment implements
     private static final String ARG_DATE_BUNDLE = "date_picker_bundle";
 
     private DatePickerDialog datePickerDialog = null;
+
+    /**
+     * The relative layout for the loading view
+     */
+    private RelativeLayout loadingLayout;
+
+    /**
+     * The textView for displaying the no result string
+     */
+    private TextView noResultTextView;
+
+    /**
+     * The loading indicator
+     */
+    private ProgressBar progressBar;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -89,6 +108,8 @@ public class GarageHistoryFragment extends Fragment implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+
     }
 
     @Override
@@ -102,8 +123,16 @@ public class GarageHistoryFragment extends Fragment implements
 
         View view = inflater.inflate(R.layout.fragment_garage_history, container, false);
 
+        loadingLayout = (RelativeLayout)view.findViewById(R.id.loading_layout);
+        noResultTextView = (TextView)view.findViewById(R.id.no_history_text);
+        progressBar = (ProgressBar)view.findViewById(R.id.progress_bar);
+
+
         mListView = (ListView)view.findViewById(R.id.list_view);
         mListView.setAdapter(mAdapter);
+
+        loadingStatusChanged(mAdapter.isLoading());
+
 
         if (savedInstanceState != null) {
             dayEpochSelected = savedInstanceState.getInt(ARG_DAY_SELECTED);
@@ -167,6 +196,47 @@ public class GarageHistoryFragment extends Fragment implements
 
 
         return (int)(mCalendar.getTimeInMillis()/1000);
+    }
+
+    private void showLoadingIndicator() {
+        //Show the loadingLayout
+        //Hide the textView
+        //Show the progress bar
+
+        loadingLayout.setVisibility(View.VISIBLE);
+        noResultTextView.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void finishedLoadingWithData() {
+        loadingLayout.setVisibility(View.GONE);
+    }
+
+    private void finishedLoadingWithoutData() {
+        loadingLayout.setVisibility(View.VISIBLE);
+        noResultTextView.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.GONE);
+
+        //Update the text
+        String resultString = "No history for " + Constants.epochDateFormat.format(new Date(dayEpochSelected*1000L));
+        noResultTextView.setText(resultString);
+
+    }
+
+    @Override
+    public void loadingStatusChanged(final boolean loading) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (loading) {
+                    showLoadingIndicator();
+                }else if (mAdapter.getCount() > 0) {
+                    finishedLoadingWithData();
+                }else {
+                    finishedLoadingWithoutData();
+                }
+            }
+        });
     }
 
     @Override

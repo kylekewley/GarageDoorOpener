@@ -24,4 +24,5 @@
     <string name="tag_garage_pager">garage_pager</string>
 
     <string name="pref_selected_door">selected_door</string>
+    <string name="history_no_data">No history for</string>
 </resources>

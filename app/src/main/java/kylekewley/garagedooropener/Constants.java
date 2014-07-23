@@ -1,5 +1,7 @@
 package kylekewley.garagedooropener;
 
+import java.text.SimpleDateFormat;
+
 /**
  * Created by Kyle Kewley on 7/9/14.
  *
@@ -8,6 +10,10 @@ package kylekewley.garagedooropener;
 public final class Constants {
 
     public static final String GARAGE_GROUP_ID = "garage";
+
+    public final static SimpleDateFormat epochDateTimeFormat = new SimpleDateFormat("hh:mm:ss a | EEEE MMMM dd, yyyy");
+    public final static SimpleDateFormat epochDateFormat = new SimpleDateFormat("EEEE MMMM dd, yyyy");
+
 
     public enum ServerParserId {
         GARAGE_META_ID(1000),       //Used to get information about the system such as the number
