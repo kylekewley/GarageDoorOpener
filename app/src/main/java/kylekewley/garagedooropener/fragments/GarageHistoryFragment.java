@@ -60,13 +60,6 @@ public class GarageHistoryFragment extends Fragment implements
      */
     private ListView mListView;
 
-    /**
-     * The day selected by the user to view at 12:00:00 AM in milliseconds.
-     */
-    private int dayEpochSelected = getBeginningOfDay((int)(System.currentTimeMillis()/1000));
-
-    private static final String ARG_DAY_SELECTED = "day_selected";
-
     private static final String ARG_DATE_BUNDLE = "date_picker_bundle";
 
     private DatePickerDialog datePickerDialog = null;
@@ -135,9 +128,6 @@ public class GarageHistoryFragment extends Fragment implements
 
 
         if (savedInstanceState != null) {
-            dayEpochSelected = savedInstanceState.getInt(ARG_DAY_SELECTED);
-
-
             //Show the date picker if it was previously shown.
             Bundle dateBundle = savedInstanceState.getBundle(ARG_DATE_BUNDLE);
             if (dateBundle != null) {
@@ -154,7 +144,6 @@ public class GarageHistoryFragment extends Fragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(ARG_DAY_SELECTED, dayEpochSelected);
 
         //Save the datePickerDialog instance state
         if (datePickerDialog != null) {
@@ -185,19 +174,6 @@ public class GarageHistoryFragment extends Fragment implements
 
     }
 
-    private static int getBeginningOfDay(int dayEpoch) {
-        Calendar mCalendar = new GregorianCalendar(Locale.getDefault());
-        mCalendar.setTime(new Date(dayEpoch*1000L));
-        mCalendar.set(Calendar.HOUR, 0);
-        mCalendar.set(Calendar.MINUTE, 0);
-        mCalendar.set(Calendar.SECOND, 0);
-        mCalendar.set(Calendar.MILLISECOND, 0);
-        mCalendar.set(Calendar.AM_PM, Calendar.AM);
-
-
-        return (int)(mCalendar.getTimeInMillis()/1000);
-    }
-
     private void showLoadingIndicator() {
         //Show the loadingLayout
         //Hide the textView
@@ -218,7 +194,7 @@ public class GarageHistoryFragment extends Fragment implements
         progressBar.setVisibility(View.GONE);
 
         //Update the text
-        String resultString = "No history for " + Constants.epochDateFormat.format(new Date(dayEpochSelected*1000L));
+        String resultString = "No history for " + Constants.epochDateFormat.format(new Date(mAdapter.getTimeEpoch()*1000L));
         noResultTextView.setText(resultString);
 
     }
@@ -243,7 +219,7 @@ public class GarageHistoryFragment extends Fragment implements
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_change_date) {
             Calendar calendar = new GregorianCalendar(Locale.getDefault());
-            calendar.setTime(new Date(dayEpochSelected*1000L));
+            calendar.setTime(new Date(mAdapter.getTimeEpoch()*1000L));
 
             datePickerDialog = new DatePickerDialog(getActivity(), this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
             datePickerDialog.setOnDismissListener(this);
@@ -251,12 +227,6 @@ public class GarageHistoryFragment extends Fragment implements
             return true;
         }
         return false;
-    }
-
-
-    @Override
-    public int getDaySelected() {
-        return dayEpochSelected;
     }
 
     /*
@@ -270,10 +240,10 @@ public class GarageHistoryFragment extends Fragment implements
         calendar.set(Calendar.YEAR, year);
         calendar.set(Calendar.MONTH, monthOfYear);
         calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-        int epochTime = getBeginningOfDay((int) (calendar.getTimeInMillis() / 1000));
+        int epochTime = mAdapter.getBeginningOfDay((int) (calendar.getTimeInMillis() / 1000));
         Log.d(GARAGE_HISTORY_TAG, "" + epochTime);
-        if (dayEpochSelected != epochTime) {
-            dayEpochSelected = epochTime;
+        if (mAdapter.getTimeEpoch() != epochTime) {
+            mAdapter.setTimeEpoch(epochTime);
             mAdapter.clearData();
             mAdapter.requestGarageHistory();
         }

@@ -10,8 +10,6 @@ public interface GarageHistoryView  {
     public Activity getActivity();
 
 
-    public int getDaySelected();
-
     public void loadingStatusChanged(boolean loading);
 
 }

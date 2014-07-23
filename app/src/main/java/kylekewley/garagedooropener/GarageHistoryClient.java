@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import kylekewley.garagedooropener.protocolbuffers.GarageHistoryRequest;
@@ -67,6 +68,11 @@ public class GarageHistoryClient extends BaseAdapter {
     @NotNull
     private boolean isLoading = false;
 
+    /**
+     * The current time we are looking at.
+     * Initialize with the beginning of the current day
+     */
+    private int timeEpoch = getBeginningOfDay(epochTime());
 
     /**
      * Create the HistoryClient with a piClient object.
@@ -115,11 +121,7 @@ public class GarageHistoryClient extends BaseAdapter {
      * Requests the garage history for the last 24 hours.
      */
     public void requestGarageHistory() {
-        if (historyView != null) {
-            requestGarageHistory(historyView.getDaySelected(), SECONDS_PER_DAY);
-        }else {
-            requestGarageHistory(getBeginningOfDay(epochTime()), SECONDS_PER_DAY);
-        }
+        requestGarageHistory(timeEpoch, SECONDS_PER_DAY);
     }
 
     @NotNull
@@ -127,15 +129,17 @@ public class GarageHistoryClient extends BaseAdapter {
         return isLoading;
     }
 
-    private static int getBeginningOfDay(int dayEpoch) {
-        Calendar mCalendar = new GregorianCalendar();
-        TimeZone mTimeZone = mCalendar.getTimeZone();
-        int mGMTOffset = mTimeZone.getRawOffset();
+    public static int getBeginningOfDay(int dayEpoch) {
+        Calendar mCalendar = new GregorianCalendar(Locale.getDefault());
+        mCalendar.setTime(new Date(dayEpoch*1000L));
+        mCalendar.set(Calendar.HOUR, 0);
+        mCalendar.set(Calendar.MINUTE, 0);
+        mCalendar.set(Calendar.SECOND, 0);
+        mCalendar.set(Calendar.MILLISECOND, 0);
+        mCalendar.set(Calendar.AM_PM, Calendar.AM);
 
-        int withOffset = dayEpoch-mGMTOffset;
-        int secondsPerDay = 86400;
 
-        return withOffset-withOffset%secondsPerDay+mGMTOffset;
+        return (int)(mCalendar.getTimeInMillis()/1000);
     }
 
     /**
@@ -161,7 +165,7 @@ public class GarageHistoryClient extends BaseAdapter {
         message.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
-                Log.d(TAG, "Problem...Server returned data");
+                Log.w(TAG, "Problem...Server returned data. This should have returned a message");
                 isLoading = false;
                 if (historyView != null) {
                     historyView.loadingStatusChanged(isLoading);
@@ -199,7 +203,6 @@ public class GarageHistoryClient extends BaseAdapter {
                         historyView.getActivity().runOnUiThread(r);
                     }else {
                         r.run();
-                        Log.d(TAG, "Added " + doorStatuses.size() + " items in the background. Total size: " + statusList.size());
                     }
 
                 }
@@ -207,7 +210,6 @@ public class GarageHistoryClient extends BaseAdapter {
 
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-                Log.d(TAG, "History parsed successfully?");
                 isLoading = false;
                 if (historyView != null) {
                     historyView.loadingStatusChanged(isLoading);
@@ -216,7 +218,7 @@ public class GarageHistoryClient extends BaseAdapter {
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
-                Log.d(TAG, "oops. We got an error: " + parseError.errorMessage);
+                Log.e(TAG, "oops. We got an error: " + parseError.errorMessage);
                 isLoading = false;
                 if (historyView != null) {
                     historyView.loadingStatusChanged(isLoading);
@@ -263,9 +265,17 @@ public class GarageHistoryClient extends BaseAdapter {
     }
 
 
+    public int getTimeEpoch() {
+        return timeEpoch;
+    }
+
+    public void setTimeEpoch(int timeEpoch) {
+        this.timeEpoch = timeEpoch;
+    }
+
     /*
-    Implementing abstract methods
-     */
+        Implementing abstract methods
+         */
     @Override
     public int getCount() {
         synchronized (statusList) {
