@@ -12,4 +12,10 @@
         android:icon="@drawable/ic_action_refresh"
         android:orderInCategory="90"
         android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/action_new_server"
+        android:title="@string/action_new_server"
+        android:icon="@android:drawable/ic_menu_add"
+        android:orderInCategory="95"
+        android:showAsAction="ifRoom" />
 </menu>

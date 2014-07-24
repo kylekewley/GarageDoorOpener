@@ -3,4 +3,11 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         android:showAsAction="never" />
+
+    <item android:id="@+id/action_new_server"
+        android:title="@string/action_new_server"
+        android:icon="@android:drawable/ic_menu_add"
+        android:orderInCategory="95"
+        android:showAsAction="never" />
+
 </menu>

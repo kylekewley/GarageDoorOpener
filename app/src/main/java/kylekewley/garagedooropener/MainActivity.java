@@ -33,6 +33,8 @@ public class MainActivity extends FragmentActivity implements
 
     private static final int SETTINGS_RESULT = 1;
 
+    private static final int ADD_SERVER_RESULT = 2;
+
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
@@ -147,6 +149,12 @@ public class MainActivity extends FragmentActivity implements
             if (dataFragment != null) {
                 dataFragment.connectToServer();
             }
+
+            return true;
+        }else if (id == R.id.action_new_server) {
+            //Open the user preferences menu
+            Intent i = new Intent(getApplicationContext(), ServerFormActivity.class);
+            startActivityForResult(i, ADD_SERVER_RESULT);
 
             return true;
         }

@@ -24,6 +24,13 @@
             android:label="@string/title_activity_settings" >
         </activity>
 
+        <activity
+            android:name=".ServerFormActivity"
+            android:label="@string/title_add_server"
+            >
+
+        </activity>
+
     </application>
 
 </manifest>

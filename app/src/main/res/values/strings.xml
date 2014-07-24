@@ -25,4 +25,6 @@
 
     <string name="pref_selected_door">selected_door</string>
     <string name="history_no_data">No history for</string>
+    <string name="action_new_server">Add Server</string>
+    <string name="title_add_server">Server Connection</string>
 </resources>
