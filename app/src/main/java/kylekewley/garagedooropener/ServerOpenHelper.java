@@ -1,5 +1,6 @@
 package kylekewley.garagedooropener;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,7 +26,7 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
         COLUMN_SERVER_ID("server_id", 0, "INTEGER PRIMARY KEY"),
         COLUMN_IP("ip_address", 1, "TEXT"),
         COLUMN_PORT("port", 2, "INTEGER"),
-        COLUMN_SERVER_NAME("server_name", 4, "TEXT");
+        COLUMN_SERVER_NAME("server_name", 3, "TEXT");
 
         private final String name;
         private final int index;
@@ -76,8 +78,6 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
     private static final String SERVER_TABLE_CREATE;
     private static final String DOOR_TABLE_CREATE;
 
-    private SQLiteDatabase database;
-
     static {
         StringBuilder sb = new StringBuilder("CREATE TABLE IF NOT EXISTS " + SERVER_TABLE_NAME + "(");
 
@@ -119,13 +119,11 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
 
     ServerOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        Log.d(TAG, SERVER_TABLE_CREATE);
-        Log.d(TAG, DOOR_TABLE_CREATE);
+        getWritableDatabase();
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        database = db;
         db.execSQL(SERVER_TABLE_CREATE);
         db.execSQL(DOOR_TABLE_CREATE);
     }
@@ -137,14 +135,14 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
 
     public List<Server> getSavedServers() {
         String serverQuery = "SELECT * FROM " + SERVER_TABLE_NAME;
-        Cursor c = database.rawQuery(serverQuery, null);
+        Cursor c = getWritableDatabase().rawQuery(serverQuery, null);
 
         String doorQuery = "SELECT * FROM " + DOOR_TABLE_NAME + " WHERE "
-                + DoorNameColumn.COLUMN_DOOR_SERVER.getName() + " EQUALS ?";
+                + DoorNameColumn.COLUMN_DOOR_SERVER.getName() + " == ?";
 
         ArrayList<Server> servers = new ArrayList<Server>();
 
-        do {
+        while (c.moveToNext()) {
             Server s = new Server();
             s.ipAddress = c.getString(ServerColumn.COLUMN_IP.getIndex());
             s.port = c.getInt(ServerColumn.COLUMN_PORT.getIndex());
@@ -152,44 +150,104 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
             s.serverName = c.getString(ServerColumn.COLUMN_SERVER_NAME.getIndex());
 
             String args[] = {Long.toString(s.serverId)};
-            Cursor doorNames = database.rawQuery(doorQuery, args);
+            Cursor doorNames = getWritableDatabase().rawQuery(doorQuery, args);
 
             //Query for the door names
-            do {
+            while (doorNames.moveToNext()) {
                 s.doorNames.add(doorNames.getString(DoorNameColumn.COLUMN_DOOR_NAME.getIndex()));
-            }while (doorNames.moveToNext());
+            }
 
             //Add to the array
             servers.add(s);
 
-        } while(c.moveToNext());
+        }
 
         return servers;
     }
 
-    public void updateServer(Server server) {
+    public long updateServer(Server server) {
+        if (getWritableDatabase() == null) return 0;
+
+        ContentValues content = new ContentValues();
+        content.put(ServerColumn.COLUMN_IP.getName(), server.ipAddress);
+        content.put(ServerColumn.COLUMN_PORT.getName(), server.port);
+        content.put(ServerColumn.COLUMN_SERVER_NAME.getName(), server.serverName);
+
+        String where = ServerColumn.COLUMN_SERVER_ID.getName() + " == ?";
+        String args[] = {Long.toString(server.serverId)};
+        long result = getWritableDatabase().update(SERVER_TABLE_NAME, content, where, args);
+
+        return result;
+    }
+
+    public boolean addNewServer(Server server) {
+        if (getWritableDatabase() == null) return false;
+
+        ContentValues content = new ContentValues();
+        content.put(ServerColumn.COLUMN_IP.getName(), server.ipAddress);
+        content.put(ServerColumn.COLUMN_PORT.getName(), server.port);
+        content.put(ServerColumn.COLUMN_SERVER_NAME.getName(), server.serverName);
+
+        long result = getWritableDatabase().insert(SERVER_TABLE_NAME, null, content);
+
+        if (result == -1) return false;
+
+        server.serverId = result;
+        return true;
+    }
+
+    public boolean addNewDoorName(Server server, String doorName) {
+        if (getWritableDatabase() == null) return false;
+
+        ContentValues content = new ContentValues();
+        content.put(DoorNameColumn.COLUMN_DOOR_SERVER.getName(), server.serverId);
+        content.put(DoorNameColumn.COLUMN_DOOR_NAME.getName(), doorName);
+
+        long result = getWritableDatabase().insert(DOOR_TABLE_NAME, null, content);
+
+        return result != -1;
+    }
+
+    public boolean deleteServer(Server server) {
+        if (getWritableDatabase() == null) return false;
+
+        String where = ServerColumn.COLUMN_SERVER_ID.getName() + " == ?";
+        String args[] = {Long.toString(server.serverId)};
+
+        int numDeleted = getWritableDatabase().delete(SERVER_TABLE_NAME, where, args);
+        deleteServerDoors(server);
+
+        return numDeleted != 0;
+    }
+
+    private void deleteServerDoors(Server server) {
+        if (getWritableDatabase() == null) return;
+
+        String where = DoorNameColumn.COLUMN_DOOR_SERVER.getName() + " == ?";
+        String args[] = {Long.toString(server.serverId)};
+
+        getWritableDatabase().delete(DOOR_TABLE_NAME, where, args);
 
     }
 
-    public void addNewServer(Server server) {
-        String query = "INSERT INTO " + SERVER_TABLE_NAME + "("
-                + ServerColumn.COLUMN_IP.getName() + ", "
-                + ServerColumn.COLUMN_PORT.getName() + ", "
-                + ServerColumn.COLUMN_SERVER_NAME.getName() + ") VALUES (*, *, *)";
-        String args[] = {server.ipAddress, Long.toString(server.port), server.serverName};
+    public int deleteDoorName(Server server, String doorName) {
+        if (getWritableDatabase() == null) return 0;
 
-        database.rawQuery(query, args);
+        String where = DoorNameColumn.COLUMN_DOOR_SERVER.getName() + " == ? AND "
+                + DoorNameColumn.COLUMN_DOOR_NAME.getName() + " == ?";
+        String args[] = {Long.toString(server.serverId), doorName};
 
-        server.serverId = getLastInsertedId();
+        return getWritableDatabase().delete(DOOR_TABLE_NAME, where, args);
+
     }
 
-    private long getLastInsertedId() {
-        String query = "SELECT ROWID from MYTABLE order by ROWID DESC limit 1";
-        Cursor c = database.rawQuery(query, null);
-        if (c != null && c.moveToFirst()) {
-            return c.getLong(0); //The 0 is the column index, we only have 1 column, so the index is 0
-        }
-        return -1;
+    private void createNewTable() {
+        getWritableDatabase().execSQL("DROP TABLE IF EXISTS " + DOOR_TABLE_NAME + ";");
+        getWritableDatabase().execSQL("DROP TABLE IF EXISTS " + SERVER_TABLE_NAME + ";");
+
+        getWritableDatabase().execSQL(SERVER_TABLE_CREATE);
+        getWritableDatabase().execSQL(DOOR_TABLE_CREATE);
+
     }
 
 }
