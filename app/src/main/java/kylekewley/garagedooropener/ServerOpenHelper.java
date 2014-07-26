@@ -12,9 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Created by kylekewley on 7/24/14.
- */
 public class ServerOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = "server_opener_helper";
 
@@ -120,17 +117,50 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
     ServerOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
         getWritableDatabase();
+        boolean result = verifyDatabase();
+        if (result == false) {
+            createNewTable();
+        }
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(SERVER_TABLE_CREATE);
-        db.execSQL(DOOR_TABLE_CREATE);
+        createNewTable();
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+    }
+
+    /**
+     * Verifies that the two tables have the correct number of columns.
+     * @return  True if the tables have the correct number of columns. False if
+     * the number of columns differs from the column enums, or if an exception was raised.
+     */
+    private boolean verifyDatabase() {
+        String serverQuery = "PRAGMA table_info(" + SERVER_TABLE_NAME + ");";
+        String doorsQuery = "PRAGMA table_info(" + DOOR_TABLE_NAME + ");";
+
+        try {
+
+            Cursor c = getWritableDatabase().rawQuery(serverQuery, null);
+            int count = c.getCount();
+            int totalCount = ServerColumn.values().length;
+            if (count != totalCount)
+                return false;
+
+            c = getWritableDatabase().rawQuery(doorsQuery, null);
+            count = c.getCount();
+            totalCount = DoorNameColumn.values().length;
+            if (count != totalCount)
+                return false;
+
+        }catch (Exception e) {
+            return false;
+        }
+
+        return true;
     }
 
     public List<Server> getSavedServers() {
@@ -175,9 +205,8 @@ public class ServerOpenHelper extends SQLiteOpenHelper {
 
         String where = ServerColumn.COLUMN_SERVER_ID.getName() + " == ?";
         String args[] = {Long.toString(server.serverId)};
-        long result = getWritableDatabase().update(SERVER_TABLE_NAME, content, where, args);
 
-        return result;
+        return (long) getWritableDatabase().update(SERVER_TABLE_NAME, content, where, args);
     }
 
     public boolean addNewServer(Server server) {
