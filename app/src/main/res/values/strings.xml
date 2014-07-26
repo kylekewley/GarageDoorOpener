@@ -27,4 +27,9 @@
     <string name="history_no_data">No history for</string>
     <string name="action_new_server">Add Server</string>
     <string name="title_add_server">Server Connection</string>
+    <string name="hint_hostname">Hostname</string>
+    <string name="hint_port">Port</string>
+    <string name="get_server_data_button">Load Server Data</string>
+    <string name="doors_string">Doors:</string>
+    <string name="save">Save</string>
 </resources>
