@@ -151,12 +151,6 @@ public class MainActivity extends FragmentActivity implements
             }
 
             return true;
-        }else if (id == R.id.action_new_server) {
-            //Open the user preferences menu
-            Intent i = new Intent(getApplicationContext(), ServerFormActivity.class);
-            startActivityForResult(i, ADD_SERVER_RESULT);
-
-            return true;
         }
 
         return super.onOptionsItemSelected(item);
