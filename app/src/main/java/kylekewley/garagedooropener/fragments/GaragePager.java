@@ -133,6 +133,8 @@ public class GaragePager extends Fragment implements
         mPager.setAdapter(mPagerAdapter);
         mPager.setOnPageChangeListener(this);
 
+        loadingStatusChangedHelper(garageOpenerClient.isLoading());
+
 
         //Set the current door if it is valid. This is used for when the activity is recreated after
         //switching from the history tab back to the opener tab.
@@ -199,38 +201,6 @@ public class GaragePager extends Fragment implements
 
     }
 
-//    public void updateGarageView(final int index, final GarageOpenerClient.DoorPosition status) {
-//        //TODO: Implement method when we get garage pictures.
-//
-//        getActivity().runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                //TODO: Make sure we're getting the right fragment
-//                if (getChildFragmentManager() == null ||
-//                        getChildFragmentManager().getFragments() == null) return;
-//
-//                GarageOpenerFragment f = (GarageOpenerFragment)getChildFragmentManager()
-//                        .getFragments().get(index);
-//
-//                if (f != null) {
-//                    TextView textView = f.getTextView();
-//
-//                    if (textView != null) {
-//
-//                        String text;
-//
-//                        if (status == GarageOpenerClient.DoorPosition.DOOR_CLOSED) text = "Closed";
-//                        else if (status == GarageOpenerClient.DoorPosition.DOOR_MOVING) text = "Moving";
-//                        else text = "Open";
-//
-//                        textView.setText(text);
-//                    }
-//                }
-//            }
-//        });
-//    }
-
-
 
     public class PagerAdapter extends FragmentStatePagerAdapter {
 
@@ -269,20 +239,23 @@ public class GaragePager extends Fragment implements
         }
     }
 
+    private void loadingStatusChangedHelper(boolean loading) {
+        if (loading) {
+            showLoadingIndicator();
+        }else if (garageOpenerClient.getNumberOfGarageDoors() > 0) {
+            finishedLoadingWithData();
+        }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
+            finishedLoadingWithoutData();
+        }else {
+            finishedLoadingWithData();
+        }
+    }
     @Override
     public void loadingStatusChanged(final boolean loading) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (loading) {
-                    showLoadingIndicator();
-                }else if (garageOpenerClient.getNumberOfGarageDoors() > 0) {
-                    finishedLoadingWithData();
-                }else if (((MainActivity)getActivity()).getDataFragment().getPiClient().isConnected()) {
-                    finishedLoadingWithoutData();
-                }else {
-                    finishedLoadingWithData();
-                }
+                loadingStatusChangedHelper(loading);
             }
         });
     }

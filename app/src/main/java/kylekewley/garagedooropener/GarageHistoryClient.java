@@ -65,7 +65,6 @@ public class GarageHistoryClient extends BaseAdapter {
     /**
      * Tells whether or not the client is trying to load data.
      */
-    @NotNull
     private boolean isLoading = false;
 
     /**
@@ -129,6 +128,12 @@ public class GarageHistoryClient extends BaseAdapter {
         return isLoading;
     }
 
+    public void setLoading(@NotNull boolean isLoading) {
+        this.isLoading = isLoading;
+        if (historyView != null)
+            historyView.loadingStatusChanged(isLoading);
+    }
+
     public static int getBeginningOfDay(int dayEpoch) {
         Calendar mCalendar = new GregorianCalendar(Locale.getDefault());
         mCalendar.setTime(new Date(dayEpoch*1000L));
@@ -166,19 +171,13 @@ public class GarageHistoryClient extends BaseAdapter {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
                 Log.w(TAG, "Problem...Server returned data. This should have returned a message");
-                isLoading = false;
-                if (historyView != null) {
-                    historyView.loadingStatusChanged(isLoading);
-                }
+                setLoading(false);
 
             }
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
-                isLoading = false;
-                if (historyView != null) {
-                    historyView.loadingStatusChanged(isLoading);
-                }
+                setLoading(false);
 
                 GarageStatus statusData = (GarageStatus)response;
                 if (statusData != null) {
@@ -190,9 +189,6 @@ public class GarageHistoryClient extends BaseAdapter {
                             synchronized (statusList) {
                                 for (GarageStatus.DoorStatus door : doorStatuses) {
                                     statusList.add(door);
-                                }
-                                if (historyView != null) {
-                                    historyView.loadingStatusChanged(isLoading);
                                 }
 
                                 notifyDataSetChanged();
@@ -210,29 +206,20 @@ public class GarageHistoryClient extends BaseAdapter {
 
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-                isLoading = false;
-                if (historyView != null) {
-                    historyView.loadingStatusChanged(isLoading);
-                }
+                setLoading(false);
             }
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
                 Log.e(TAG, "oops. We got an error: " + parseError.errorMessage);
-                isLoading = false;
-                if (historyView != null) {
-                    historyView.loadingStatusChanged(isLoading);
-                }
+                setLoading(false);
             }
         });
 
 
         Log.d(TAG, "Sending message");
         client.sendMessage(message);
-        isLoading = true;
-
-        if (historyView != null)
-            historyView.loadingStatusChanged(isLoading);
+        setLoading(true);
     }
 
     private int epochTime() {

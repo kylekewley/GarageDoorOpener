@@ -152,14 +152,11 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
     }
 
     public void stopLoadingScreens() {
-        if (garageOpenerClient.getOpenerView() != null) {
-            garageOpenerClient.getOpenerView().loadingStatusChanged(false);
-        }
-        if (garageHistoryClient.getHistoryView() != null) {
-            garageHistoryClient.getHistoryView().loadingStatusChanged(false);
-        }
+        garageHistoryClient.setLoading(false);
+        garageOpenerClient.setLoading(false);
     }
-        /*
+
+    /*
     PiClient Callbacks class
      */
 

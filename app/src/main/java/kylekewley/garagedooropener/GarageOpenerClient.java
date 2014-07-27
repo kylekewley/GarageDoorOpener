@@ -79,6 +79,10 @@ public class GarageOpenerClient {
     private GarageOpenerView openerView;
 
     /**
+     * Tells whether or not the client is trying to load data.
+     */
+    private boolean isLoading = false;
+    /**
      * Default parameters that are shared between all constructors.
      * This MUST be called by all constructors for the class to work properly.
      */
@@ -188,6 +192,21 @@ public class GarageOpenerClient {
     }
 
 
+    public boolean isLoading() {
+        return isLoading;
+    }
+
+    /**
+     * Sets whether the client is loading and notifies the interface, if necessary.
+     * @param isLoading     true if the client is loading data.
+     */
+    public void setLoading(boolean isLoading) {
+        this.isLoading = isLoading;
+
+        if (openerView != null)
+            openerView.loadingStatusChanged(isLoading);
+    }
+
     /**
      * Method to determine whether a door status should be set to
      * GARAGE_NOT_MOVING or GARAGE_OPEN.
@@ -266,38 +285,28 @@ public class GarageOpenerClient {
         statusRequest.setMessageCallbacks(new PiMessageCallbacks(GarageStatus.class) {
             @Override
             public void serverReturnedData(byte[] data, PiMessage message) {
-                if (openerView != null) {
-                    openerView.loadingStatusChanged(false);
-                }
+                setLoading(false);
+
             }
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
                 GarageStatus status = (GarageStatus)response;
                 parseDoorStatusList(status.doors);
-                if (openerView != null) {
-                    openerView.loadingStatusChanged(false);
-                }
+                setLoading(false);
             }
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-                if (openerView != null) {
-                    openerView.loadingStatusChanged(false);
-                }
+                setLoading(false);
             }
 
             @Override
             public void serverReturnedErrorForMessage(ParseError parseError, PiMessage message) {
                 Log.d(TAG, "Error parsing status request message.");
-                if (openerView != null) {
-                    openerView.loadingStatusChanged(false);
-                }
-
+                setLoading(false);
             }
         });
-        if (openerView != null) {
-            openerView.loadingStatusChanged(true);
-        }
+        setLoading(true);
         client.sendMessage(statusRequest);
     }
 
