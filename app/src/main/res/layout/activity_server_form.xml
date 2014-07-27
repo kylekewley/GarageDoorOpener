@@ -40,10 +40,9 @@
 
                 <Button
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_height="wrap_content"
                     android:text="@string/get_server_data_button"
-                    android:id="@+id/server_get"
-                    android:layout_weight="0" />
+                    android:id="@+id/server_get" />
             </LinearLayout>
 
             <LinearLayout
@@ -53,12 +52,28 @@
                 android:layout_gravity="center_horizontal"
                 android:id="@+id/server_door_layout"
                 android:layout_weight="1"
-                android:layout_marginTop="5dp">
+                android:layout_marginTop="5dp"
+                android:layout_marginLeft="5dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/doors_string" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/doors_string"
+                        android:layout_marginRight="5dp" />
+
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/server_door_progress"
+                        android:layout_gravity="bottom" />
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
