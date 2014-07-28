@@ -177,7 +177,6 @@ public class GarageHistoryClient extends BaseAdapter {
 
             @Override
             public void serverRepliedWithMessage(Message response, PiMessage sentMessage) {
-                setLoading(false);
 
                 GarageStatus statusData = (GarageStatus)response;
                 if (statusData != null) {
@@ -192,6 +191,7 @@ public class GarageHistoryClient extends BaseAdapter {
                                 }
 
                                 notifyDataSetChanged();
+                                setLoading(false);
                             }
                     }};
 

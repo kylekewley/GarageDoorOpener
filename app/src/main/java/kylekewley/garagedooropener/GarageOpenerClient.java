@@ -19,6 +19,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import kylekewley.garagedooropener.Constants.ClientParserId;
 import kylekewley.garagedooropener.Constants.ServerParserId;
@@ -82,6 +84,8 @@ public class GarageOpenerClient {
      * Tells whether or not the client is trying to load data.
      */
     private boolean isLoading = false;
+
+    private Timer t;
     /**
      * Default parameters that are shared between all constructors.
      * This MUST be called by all constructors for the class to work properly.
@@ -153,7 +157,10 @@ public class GarageOpenerClient {
      */
     public DoorPosition getDoorStatusAtIndex(int index) throws IndexOutOfBoundsException{
         checkDoorIndexBounds(index);
-
+        if (garageDoors.get(index).doorPosition == DoorPosition.DOOR_MOVING) {
+            if (!isGarageMoving(garageDoors.get(index).lastStatusChange))
+                setDoorStatusAtIndex(index, DoorPosition.DOOR_NOT_CLOSED);
+        }
 
         return garageDoors.get(index).doorPosition;
     }
@@ -336,9 +343,10 @@ public class GarageOpenerClient {
         final Runnable r = new Runnable() {
             @Override
             public void run() {
-                initializeDoorArray(doorStatusList.size());
+                if (doorStatusList.size() > garageDoors.size())
+                    initializeDoorArray(doorStatusList.size());
                 for (GarageStatus.DoorStatus status : doorStatusList) {
-                    int index = status.garageId;
+                    final int index = status.garageId;
                     boolean closed = status.isClosed;
 
                     setLastStatusChangeAtIndex(index, status.timestamp);
@@ -350,6 +358,24 @@ public class GarageOpenerClient {
                         //Check if it is still moving
                         if (isGarageMoving(status.timestamp)) {
                             setDoorStatusAtIndex(index, DoorPosition.DOOR_MOVING);
+
+                            //Check again in DOOR_CLOSE_TIME seconds
+                            t = new Timer();
+                            t.schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (openerView != null) {
+                                        openerView.getActivity().runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                viewPager.getAdapter().notifyDataSetChanged();
+                                            }
+                                        });
+                                    }
+                                }
+                            }, (DOOR_CLOSE_TIME - (epochTime() - status.timestamp))*1000);
+                            Log.d(TAG, "Check in seconds: " + (DOOR_CLOSE_TIME - (epochTime() - status.timestamp)));
+
                         }else {
                             setDoorStatusAtIndex(index, DoorPosition.DOOR_NOT_CLOSED);
                         }
@@ -370,8 +396,11 @@ public class GarageOpenerClient {
         }else {
             r.run();
         }
-
     }
+    private int epochTime() {
+        return (int)(System.currentTimeMillis()/1000);
+    }
+
 
     public void clearDoors() {
         Runnable r = new Runnable() {
@@ -446,5 +475,6 @@ public class GarageOpenerClient {
             Log.d(TAG, "Parsing update");
             parseDoorStatusList(message.doors);
         }
+
     }
 }
