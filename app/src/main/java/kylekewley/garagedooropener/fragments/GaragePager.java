@@ -17,6 +17,7 @@ import android.widget.TextView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.font.TextAttribute;
 import java.util.Date;
 
 import kylekewley.garagedooropener.Constants;
@@ -142,7 +143,7 @@ public class GaragePager extends Fragment implements
             mPager.setCurrentItem(currentDoor, false);
 
         mPager.setClipChildren(false);
-        mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
+//        mPager.setPageMargin(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
         mPager.setOffscreenPageLimit(4);
 
 
@@ -236,6 +237,11 @@ public class GaragePager extends Fragment implements
             if (!initialized) {
                 mPager.setCurrentItem(currentDoor, false);
             }
+        }
+
+        @Override
+        public float getPageWidth(int position) {
+            return 0.5f;
         }
     }
 

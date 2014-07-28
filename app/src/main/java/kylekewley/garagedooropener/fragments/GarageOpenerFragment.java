@@ -1,5 +1,6 @@
 package kylekewley.garagedooropener.fragments;
 
+import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -7,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +41,7 @@ public class GarageOpenerFragment extends Fragment {
 
     private TextView textView;
 
-    private ImageButton doorImage;
+    private ImageView doorImage;
 
     /**
      * Use this factory method to create a new instance of
@@ -69,17 +72,26 @@ public class GarageOpenerFragment extends Fragment {
         }
     }
 
+    public static void setMargins (View v, int l, int t, int r, int b) {
+        if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+            p.setMargins(l, t, r, b);
+            v.requestLayout();
+        }
+    }
+
     @Override
     public View onCreateView(@NotNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_garage_opener, container, false);
-
+        int totalMargin = Math.abs(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
+//        view.setPadding(totalMargin/8, 0, totalMargin*7/8, 0);
         textView = (TextView)view.findViewById(R.id.page_number_text);
 
         setDoorPosition(((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient().getDoorStatusAtIndex(garageId));
 
-        doorImage = (ImageButton)view.findViewById(R.id.door_image);
+        doorImage = (ImageView)view.findViewById(R.id.door_image);
 
         if (doorImage != null) {
             doorImage.setOnClickListener(new View.OnClickListener() {
