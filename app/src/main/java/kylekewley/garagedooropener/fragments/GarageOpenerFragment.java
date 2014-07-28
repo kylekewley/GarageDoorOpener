@@ -88,10 +88,10 @@ public class GarageOpenerFragment extends Fragment {
         int totalMargin = Math.abs(getResources().getDimensionPixelOffset(R.dimen.viewpager_margin));
 //        view.setPadding(totalMargin/8, 0, totalMargin*7/8, 0);
         textView = (TextView)view.findViewById(R.id.page_number_text);
+        doorImage = (ImageView)view.findViewById(R.id.door_image);
 
         setDoorPosition(((MainActivity)getActivity()).getDataFragment().getGarageOpenerClient().getDoorStatusAtIndex(garageId));
 
-        doorImage = (ImageView)view.findViewById(R.id.door_image);
 
         if (doorImage != null) {
             doorImage.setOnClickListener(new View.OnClickListener() {
@@ -109,7 +109,7 @@ public class GarageOpenerFragment extends Fragment {
     }
 
     public void setDoorPosition(GarageOpenerClient.DoorPosition position) {
-        if (textView != null) {
+        if (textView != null && doorImage != null) {
             if (position == GarageOpenerClient.DoorPosition.DOOR_CLOSED) {
                 setDoorClosed();
             }else if (position == GarageOpenerClient.DoorPosition.DOOR_MOVING) {
@@ -120,13 +120,17 @@ public class GarageOpenerFragment extends Fragment {
         }
     }
     private void setDoorOpen() {
+        doorImage.setImageResource(R.drawable.open_door);
         textView.setText("Open");
     }
     private void setDoorPartial() {
+        doorImage.setImageResource(R.drawable.moving_door);
+
         textView.setText("Partial");
 
     }
     private void setDoorClosed() {
+        doorImage.setImageResource(R.drawable.closed_door);
         textView.setText("Closed");
     }
 
