@@ -6,6 +6,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.widget.BaseAdapter;
+import android.widget.Toast;
 
 import com.kylekewley.piclient.CustomBufferParser;
 import com.kylekewley.piclient.PiClient;
@@ -252,7 +253,14 @@ public class GarageOpenerClient {
 
             @Override
             public void serverSuccessfullyParsedMessage(PiMessage message) {
-                Log.d(TAG, "Successfully parsed message");
+                if (openerView != null) {
+                    openerView.getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(openerView.getActivity(), "Door Trigger Successful", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
 
             @Override
@@ -373,7 +381,7 @@ public class GarageOpenerClient {
                                         });
                                     }
                                 }
-                            }, (DOOR_CLOSE_TIME - (epochTime() - status.timestamp))*1000);
+                            }, (DOOR_CLOSE_TIME - (epochTime() - status.timestamp)) * 1000);
                             Log.d(TAG, "Check in seconds: " + (DOOR_CLOSE_TIME - (epochTime() - status.timestamp)));
 
                         }else {
