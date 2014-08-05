@@ -29,6 +29,8 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
 
     private Activity activity;
 
+    private AlertDialog currentDialog;
+
     /**
      * Used as a back end for the GaragePager fragment
      */
@@ -59,6 +61,20 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
         setRetainInstance(true);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (currentDialog != null) {
+            currentDialog.cancel();
+            currentDialog = null;
+        }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
     /*
     Private Methods
@@ -214,12 +230,12 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
      */
     @Override
     public void clientConnectionTimedOut(PiClient piClient) {
-
+        stopLoadingScreens();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setMessage("The connection to the host timed out. Try again?")
+                currentDialog = new AlertDialog.Builder(activity)
+                    .setMessage("The connection to the host timed out. Try again?")
                         .setPositiveButton("Retry", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -232,7 +248,13 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                                 //Do nothing
                                 stopLoadingScreens();
                             }
-                        }).create().show();
+                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        stopLoadingScreens();
+                    }
+                }).create();
+                currentDialog.show();
             }
         });
     }
@@ -246,12 +268,14 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
      */
     @Override
     public void clientRaisedError(@NotNull final PiClient piClient, @NotNull final PiClientCallbacks.ClientErrorCode error) {
+        piClient.close();
+        stopLoadingScreens();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setMessage(error.getErrorMessage()
-                        + " Do you want to reconnect to the server?")
+                currentDialog = new AlertDialog.Builder(activity)
+                        .setMessage(error.getErrorMessage()
+                                + " Do you want to reconnect to the server?")
                         .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -264,7 +288,14 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                                 piClient.close();
                                 stopLoadingScreens();
                             }
-                        }).create().show();
+                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        piClient.close();
+                        stopLoadingScreens();
+                    }
+                }).create();
+                currentDialog.show();
             }
         });
     }
@@ -279,11 +310,13 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
      */
     @Override
     public void clientRaisedError(@NotNull final PiClient piClient, Exception error) {
+        piClient.close();
+        stopLoadingScreens();
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-                builder.setMessage("The client encountered an unknown error. " +
+                currentDialog =  new AlertDialog.Builder(activity)
+                    .setMessage("The client encountered an unknown error. " +
                         "Do you want to reconnect to the server?")
                         .setPositiveButton("Reconnect", new DialogInterface.OnClickListener() {
                             @Override
@@ -298,7 +331,14 @@ public class DataFragment extends Fragment implements PiClientCallbacks {
                                 piClient.close();
                                 stopLoadingScreens();
                             }
-                        }).create().show();
+                        }).setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        piClient.close();
+                        stopLoadingScreens();
+                    }
+                }).create();
+                currentDialog.show();
             }
         });
 

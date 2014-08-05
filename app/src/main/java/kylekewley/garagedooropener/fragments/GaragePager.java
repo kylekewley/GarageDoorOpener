@@ -174,12 +174,13 @@ public class GaragePager extends Fragment implements
 
 
     private void updateActionBarTitle() {
-        if (garageOpenerClient.getNumberOfGarageDoors() == 0) {
-            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_overview));
-        }else {
-            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+        ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_overview));
 
-        }
+//        if (garageOpenerClient.getNumberOfGarageDoors() == 0) {
+//        }else {
+//            ((MainActivity)getActivity()).onSectionAttached(getString(R.string.title_garage_opener) + " " + (currentDoor+1));
+//
+//        }
 
     }
 
@@ -194,7 +195,7 @@ public class GaragePager extends Fragment implements
         PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().
                 putInt(getString(R.string.pref_selected_door), i).commit();
 
-        updateActionBarTitle();
+//        updateActionBarTitle();
     }
 
     @Override
@@ -232,7 +233,7 @@ public class GaragePager extends Fragment implements
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
-            updateActionBarTitle();
+//            updateActionBarTitle();
 
             if (!initialized) {
                 mPager.setCurrentItem(currentDoor, false);

@@ -35,7 +35,6 @@
             android:clickable="true"
             android:cropToPadding="false"
             android:baselineAlignBottom="false"
-            android:background="#ff2d2d2d"
             android:layout_alignParentTop="false"
             android:layout_marginRight="7dp"
             android:layout_marginLeft="7dp" />
